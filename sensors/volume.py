@@ -107,6 +107,8 @@ if __name__ == '__main__':
         args.endpoint, args.client_id))
 
     def publish_volume(mqtt_connection, topic, message_json):
+
+        print(f"Publishing message {message_json} to topic {topic}")
         mqtt_connection.publish(topic=topic, payload=message_json, qos=mqtt.QoS.AT_LEAST_ONCE)
 
     def measure_volume():
@@ -128,21 +130,20 @@ if __name__ == '__main__':
     print("Connected!")
 
     # Subscribe
-    print("Subscribing to topic '{}'...".format(args.topic))
+    print(f"Subscribing to topic {args.topic}")
     subscribe_future, packet_id = mqtt_connection.subscribe(
         topic=args.topic,
         qos=mqtt.QoS.AT_LEAST_ONCE,
-        callback=on_message_received, args=(sensor_timer, ))
+        callback=on_message_received)
 
     subscribe_result = subscribe_future.result()
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
 
     print ("Sending messages until program killed")
-
     sensor_timer.start()
 
     # Disconnect
-    print("Disconnecting...")
-    disconnect_future = mqtt_connection.disconnect()
-    disconnect_future.result()
-    print("Disconnected!")
+    #print("Disconnecting...")
+    #disconnect_future = mqtt_connection.disconnect()
+    #disconnect_future.result()
+    #print("Disconnected!")
