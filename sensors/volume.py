@@ -10,6 +10,7 @@ import time
 from uuid import uuid4
 import json
 import random
+from threading import Timer
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -26,10 +27,8 @@ parser.add_argument('--key', help="File path to your private key, in PEM format.
 parser.add_argument('--root-ca', help="File path to root certificate authority, in PEM format. " +
                                       "Necessary if MQTT server uses a certificate that's not already in " +
                                       "your trust store.")
-parser.add_argument('--client-id', default="test-" + str(uuid4()), help="Client ID for MQTT connection.")
+parser.add_argument('--client-id', default="greenhouse-sensor-" + str(uuid4()), help="Client ID for MQTT connection.")
 parser.add_argument('--topic', default="test/topic", help="Topic to subscribe to, and publish messages to.")
-parser.add_argument('--count', default=10, type=int, help="Number of messages to publish/receive before exiting. " +
-                                                          "Specify 0 to run forever.")
 parser.add_argument('--signing-region', default='us-east-1', help="If you specify --use-web-socket, this " +
     "is the region that will be used for computing the Sigv4 signature")
 parser.add_argument('--proxy-host', help="Hostname of proxy to connect to.")
@@ -41,9 +40,6 @@ parser.add_argument('--verbosity', choices=[x.name for x in io.LogLevel], defaul
 args = parser.parse_args()
 
 io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
-
-received_count = 0
-received_all_event = threading.Event()
 
 # Callback when connection is accidentally lost.
 def on_connection_interrupted(connection, error, **kwargs):
@@ -75,10 +71,12 @@ def on_resubscribe_complete(resubscribe_future):
 # Callback when the subscribed topic receives a message
 def on_message_received(topic, payload, dup, qos, retain, **kwargs):
     print("Received message from topic '{}': {}".format(topic, payload))
-    global received_count
-    received_count += 1
-    if received_count == args.count:
-        received_all_event.set()
+    print(f"The arguments into message received were {kwargs}")
+
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
 
 if __name__ == '__main__':
     # Spin up resources
@@ -108,6 +106,21 @@ if __name__ == '__main__':
     print("Connecting to {} with client ID '{}'...".format(
         args.endpoint, args.client_id))
 
+    def publish_volume(mqtt_connection, topic, message_json):
+        mqtt_connection.publish(topic=topic, payload=message_json, qos=mqtt.QoS.AT_LEAST_ONCE)
+
+    def measure_volume():
+        volume_reading = random.uniform(0, 5)
+        message = {"location": "hydro_1", "volume_gallons": volume_reading}
+        print(f"Measured {message}")
+        return message        
+
+    def send_measurement(mqtt_connection, topic):
+
+        message = measure_volume()
+        publish_volume (mqtt_connection, topic, message)
+
+    sensor_timer = RepeatTimer(10, send_measurement, args=(mqtt_connection, args.topic, ))
     connect_future = mqtt_connection.connect()
 
     # Future.result() waits until a result is available
@@ -119,40 +132,14 @@ if __name__ == '__main__':
     subscribe_future, packet_id = mqtt_connection.subscribe(
         topic=args.topic,
         qos=mqtt.QoS.AT_LEAST_ONCE,
-        callback=on_message_received)
+        callback=on_message_received, args=(sensor_timer, ))
 
     subscribe_result = subscribe_future.result()
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
 
-    # Publish message to server desired number of times.
-    # This step is skipped if message is blank.
-    # This step loops forever if count was set to 0.
-    if args.count == 0:
-        print ("Sending messages until program killed")
-    else:
-        print ("Sending {} message(s)".format(args.count))
+    print ("Sending messages until program killed")
 
-    publish_count = 1
-    while (publish_count <= args.count) or (args.count == 0):
-        volume_reading = random.uniform(0, 5)
-        message_json = {"location": "hydro_1", "volume_gallons": volume_reading}
-        message = message_json #json.dumps(message_json)
-        print("Publishing message to topic '{}': {}".format(args.topic, message))
-        message_json = json.dumps(message)
-        mqtt_connection.publish(
-            topic=args.topic,
-            payload=message_json,
-            qos=mqtt.QoS.AT_LEAST_ONCE)
-        time.sleep(1)
-        publish_count += 1
-
-    # Wait for all messages to be received.
-    # This waits forever if count was set to 0.
-    if args.count != 0 and not received_all_event.is_set():
-        print("Waiting for all messages to be received...")
-
-    received_all_event.wait()
-    print("{} message(s) received.".format(received_count))
+    sensor_timer.start()
 
     # Disconnect
     print("Disconnecting...")
