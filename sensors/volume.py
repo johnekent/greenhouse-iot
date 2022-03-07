@@ -108,10 +108,13 @@ if __name__ == '__main__':
     print("Connecting to {} with client ID '{}'...".format(
         args.endpoint, args.client_id))
 
-    def publish_volume(mqtt_connection, topic, message_json):
+    def publish_volume(mqtt_connection, topic, message):
 
-        print(f"Publishing message {message_json} to topic {topic}")
-        result = mqtt_connection.publish(topic=topic, payload=message_json, qos=mqtt.QoS.AT_LEAST_ONCE)
+        if not isinstance(message, str):
+            raise ValueError(f"The argument for message must be a string but it was {type(message)}")
+
+        print(f"Publishing message {message} to topic {topic}")
+        result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
         print(f"The result of publish is {result}")
 
     def measure_volume():
@@ -123,18 +126,18 @@ if __name__ == '__main__':
     def send_measurement(mqtt_connection, topic):
 
         message = measure_volume()
-        publish_volume (mqtt_connection, topic, message)
+        publish_volume (mqtt_connection, topic, json.dumps(message))
 
     connect_future = mqtt_connection.connect()
     # Future.result() waits until a result is available
     connect_future.result()
     print("Connected!")
 
-    #sensor_timer = RepeatTimer(10, send_measurement, args=(mqtt_connection, args.topic, ))
+    sensor_timer = RepeatTimer(10, send_measurement, args=(mqtt_connection, args.topic, ))
 
 
-    print("Running it outside of thread")
-    send_measurement(mqtt_connection, args.topic) 
+    #print("Running it outside of thread")
+    #send_measurement(mqtt_connection, args.topic) 
 
     # Subscribe
     print(f"Subscribing to topic {args.topic}")
@@ -147,7 +150,7 @@ if __name__ == '__main__':
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
 
     print ("Sending messages until program killed")
-    #sensor_timer.start()
+    sensor_timer.start()
 
     # Disconnect
     #print("Disconnecting...")
