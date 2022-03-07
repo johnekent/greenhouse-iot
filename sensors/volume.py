@@ -103,13 +103,16 @@ if __name__ == '__main__':
         keep_alive_secs=30,
         http_proxy_options=proxy_options)
 
+    print(f"The connection is {mqtt_connection}")
+
     print("Connecting to {} with client ID '{}'...".format(
         args.endpoint, args.client_id))
 
     def publish_volume(mqtt_connection, topic, message_json):
 
         print(f"Publishing message {message_json} to topic {topic}")
-        mqtt_connection.publish(topic=topic, payload=message_json, qos=mqtt.QoS.AT_LEAST_ONCE)
+        result = mqtt_connection.publish(topic=topic, payload=message_json, qos=mqtt.QoS.AT_LEAST_ONCE)
+        print(f"The result of publish is {result}")
 
     def measure_volume():
         volume_reading = random.uniform(0, 5)
@@ -122,12 +125,16 @@ if __name__ == '__main__':
         message = measure_volume()
         publish_volume (mqtt_connection, topic, message)
 
-    sensor_timer = RepeatTimer(10, send_measurement, args=(mqtt_connection, args.topic, ))
     connect_future = mqtt_connection.connect()
-
     # Future.result() waits until a result is available
     connect_future.result()
     print("Connected!")
+
+    #sensor_timer = RepeatTimer(10, send_measurement, args=(mqtt_connection, args.topic, ))
+
+
+    print("Running it outside of thread")
+    send_measurement(mqtt_connection, args.topic) 
 
     # Subscribe
     print(f"Subscribing to topic {args.topic}")
@@ -140,7 +147,7 @@ if __name__ == '__main__':
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
 
     print ("Sending messages until program killed")
-    sensor_timer.start()
+    #sensor_timer.start()
 
     # Disconnect
     #print("Disconnecting...")
