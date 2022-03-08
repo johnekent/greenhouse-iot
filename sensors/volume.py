@@ -2,8 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0.
 
 import argparse
-from awscrt import io, mqtt, auth, http
-from awsiot import mqtt_connection_builder
+from awscrt import io
 import sys
 import threading
 import time
@@ -11,6 +10,8 @@ from uuid import uuid4
 import json
 import random
 from threading import Timer
+
+import SensorPublisher
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -37,113 +38,9 @@ args = parser.parse_args()
 
 io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 
-# Callback when connection is accidentally lost.
-def on_connection_interrupted(connection, error, **kwargs):
-    print("Connection interrupted. error: {}".format(error))
-
-
-# Callback when an interrupted connection is re-established.
-def on_connection_resumed(connection, return_code, session_present, **kwargs):
-    print("Connection resumed. return_code: {} session_present: {}".format(return_code, session_present))
-
-    if return_code == mqtt.ConnectReturnCode.ACCEPTED and not session_present:
-        print("Session did not persist. Resubscribing to existing topics...")
-        resubscribe_future, _ = connection.resubscribe_existing_topics()
-
-        # Cannot synchronously wait for resubscribe result because we're on the connection's event-loop thread,
-        # evaluate result with a callback instead.
-        resubscribe_future.add_done_callback(on_resubscribe_complete)
-
-
-def on_resubscribe_complete(resubscribe_future):
-        resubscribe_results = resubscribe_future.result()
-        print("Resubscribe results: {}".format(resubscribe_results))
-
-        for topic, qos in resubscribe_results['topics']:
-            if qos is None:
-                sys.exit("Server rejected resubscribe to topic: {}".format(topic))
-
-
-# Callback when the subscribed topic receives a message
-def on_message_received(topic, payload, dup, qos, retain, **kwargs):
-    print(f"Received {payload} from topic {topic}")
-    print(f"The arguments into message received were {kwargs}")
-
-class RepeatTimer(Timer):
-    def run(self):
-        while not self.finished.wait(self.interval):
-            self.function(*self.args, **self.kwargs)
-
 if __name__ == '__main__':
-    # Spin up resources
-    event_loop_group = io.EventLoopGroup(1)
-    host_resolver = io.DefaultHostResolver(event_loop_group)
-    client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
 
-    proxy_options = None
+    seconds_between = 5
+    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
 
-    # not using websocket
-    mqtt_connection = mqtt_connection_builder.mtls_from_path(
-        endpoint=args.endpoint,
-        port=args.port,
-        cert_filepath=args.cert,
-        pri_key_filepath=args.key,
-        client_bootstrap=client_bootstrap,
-        ca_filepath=args.root_ca,
-        on_connection_interrupted=on_connection_interrupted,
-        on_connection_resumed=on_connection_resumed,
-        client_id=args.client_id,
-        clean_session=False,
-        keep_alive_secs=30,
-        http_proxy_options=proxy_options)
-
-    print(f"The connection is {mqtt_connection}")
-
-    print(f"Connecting to {args.endpoint} with client ID [{args.client_id}]...")
-
-    def publish_volume(mqtt_connection, topic, message):
-
-        if not isinstance(message, str):
-            raise ValueError(f"The argument for message must be a string but it was {type(message)}")
-
-        print(f"Publishing message {message} to topic {topic}")
-        result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
-        print(f"The result of publish is {result}")
-
-    def measure_volume():
-        volume_reading = random.uniform(0, 5)
-        message = {"location": "hydro_1", "volume_gallons": volume_reading}
-        print(f"Measured {message}")
-        return message        
-
-    def send_measurement(mqtt_connection, topic):
-        message = measure_volume()
-        publish_volume (mqtt_connection, topic, json.dumps(message))
-
-    connect_future = mqtt_connection.connect()
-    # Future.result() waits until a result is available
-    result = connect_future.result()
-    print(f"Connected with result {result}!")
-
-    seconds_between_measurements = 10
-
-    sensor_timer = RepeatTimer(seconds_between_measurements, send_measurement, args=(mqtt_connection, args.topic, ))
-
-    # Subscribe
-    print(f"Subscribing to topic {args.topic}")
-    subscribe_future, packet_id = mqtt_connection.subscribe(
-        topic=args.topic,
-        qos=mqtt.QoS.AT_LEAST_ONCE,
-        callback=on_message_received)
-
-    subscribe_result = subscribe_future.result()
-    print("Subscribed with {}".format(str(subscribe_result['qos'])))
-
-    print ("Sending messages until program killed")
-    sensor_timer.start()
-
-    # Disconnect
-    #print("Disconnecting...")
-    #disconnect_future = mqtt_connection.disconnect()
-    #disconnect_future.result()
-    #print("Disconnected!")
+    sensor_publisher.start_sensor()
