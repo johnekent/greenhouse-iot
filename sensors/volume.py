@@ -29,10 +29,6 @@ parser.add_argument('--root-ca', help="File path to root certificate authority, 
                                       "your trust store.")
 parser.add_argument('--client-id', default="greenhouse-sensor-" + str(uuid4()), help="Client ID for MQTT connection.")
 parser.add_argument('--topic', default="test/topic", help="Topic to subscribe to, and publish messages to.")
-parser.add_argument('--signing-region', default='us-east-1', help="If you specify --use-web-socket, this " +
-    "is the region that will be used for computing the Sigv4 signature")
-parser.add_argument('--proxy-host', help="Hostname of proxy to connect to.")
-parser.add_argument('--proxy-port', type=int, default=8080, help="Port of proxy to connect to.")
 parser.add_argument('--verbosity', choices=[x.name for x in io.LogLevel], default=io.LogLevel.NoLogs.name,
     help='Logging level')
 
@@ -70,7 +66,7 @@ def on_resubscribe_complete(resubscribe_future):
 
 # Callback when the subscribed topic receives a message
 def on_message_received(topic, payload, dup, qos, retain, **kwargs):
-    print("Received message from topic '{}': {}".format(topic, payload))
+    print(f"Received {payload} from topic {topic}")
     print(f"The arguments into message received were {kwargs}")
 
 class RepeatTimer(Timer):
@@ -85,8 +81,6 @@ if __name__ == '__main__':
     client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
 
     proxy_options = None
-    if (args.proxy_host):
-        proxy_options = http.HttpProxyOptions(host_name=args.proxy_host, port=args.proxy_port)
 
     # not using websocket
     mqtt_connection = mqtt_connection_builder.mtls_from_path(
@@ -105,8 +99,7 @@ if __name__ == '__main__':
 
     print(f"The connection is {mqtt_connection}")
 
-    print("Connecting to {} with client ID '{}'...".format(
-        args.endpoint, args.client_id))
+    print(f"Connecting to {args.endpoint} with client ID [{args.client_id}]...")
 
     def publish_volume(mqtt_connection, topic, message):
 
@@ -124,20 +117,17 @@ if __name__ == '__main__':
         return message        
 
     def send_measurement(mqtt_connection, topic):
-
         message = measure_volume()
         publish_volume (mqtt_connection, topic, json.dumps(message))
 
     connect_future = mqtt_connection.connect()
     # Future.result() waits until a result is available
-    connect_future.result()
-    print("Connected!")
+    result = connect_future.result()
+    print(f"Connected with result {result}!")
 
-    sensor_timer = RepeatTimer(10, send_measurement, args=(mqtt_connection, args.topic, ))
+    seconds_between_measurements = 10
 
-
-    #print("Running it outside of thread")
-    #send_measurement(mqtt_connection, args.topic) 
+    sensor_timer = RepeatTimer(seconds_between_measurements, send_measurement, args=(mqtt_connection, args.topic, ))
 
     # Subscribe
     print(f"Subscribing to topic {args.topic}")
