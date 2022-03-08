@@ -14,10 +14,11 @@ from threading import Timer
 
 class SensorPublisher:
 
-    def __init__(self, verbosity, endpoint, port, cert, key, root_ca, client_id, seconds_between=10):
+    def __init__(self, verbosity, endpoint, port, topic, cert, key, root_ca, client_id, seconds_between=10):
         self.reading_timer = None
         self.endpoint = endpoint
         self.port = port
+        self.topic = topic
         self.cert = cert
         self.key = key
         self.root_ca = root_ca
@@ -103,7 +104,7 @@ class SensorPublisher:
         print(f"Received {payload} from topic {topic}")
         print(f"The arguments into message received were {kwargs}")
 
-    def create_connection(endpoint, port, cert, key, root_ca, client_id):
+    def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
         """_summary_
 
         Args:

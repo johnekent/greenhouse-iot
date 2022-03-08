@@ -11,7 +11,7 @@ import json
 import random
 from threading import Timer
 
-import SensorPublisher
+from SensorPublisher import SensorPublisher
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -41,6 +41,6 @@ io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 if __name__ == '__main__':
 
     seconds_between = 5
-    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
+    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
 
     sensor_publisher.start_sensor()
