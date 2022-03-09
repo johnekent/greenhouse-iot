@@ -44,3 +44,5 @@ if __name__ == '__main__':
     sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
 
     sensor_publisher.start_sensor()
+
+    sensor_publisher.subscribe_control_messages()

@@ -12,6 +12,11 @@ import json
 import random
 from threading import Timer
 
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)      
+
 class SensorPublisher:
 
     def __init__(self, verbosity, endpoint, port, topic, cert, key, root_ca, client_id, seconds_between=10):
@@ -54,7 +59,8 @@ class SensorPublisher:
     ### Timer and Topic Configuration
     def start_sensor(self):
         if not self.reading_timer:
-            self.reading_timer = Timer(self.seconds_between, self.send_measurement)
+            self.reading_timer = RepeatTimer(self.seconds_between, self.send_measurement)
+        
         self.reading_timer.start()
 
     def subscribe_control_messages(self):
