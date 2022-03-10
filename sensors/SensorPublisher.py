@@ -69,7 +69,7 @@ class SensorPublisher:
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
             topic=self.topic,
             qos=mqtt.QoS.AT_LEAST_ONCE,
-            callback=self.on_message_received)
+            callback=SensorPublisher.on_message_received)
 
         subscribe_result = subscribe_future.result()
         print(f"Subscribed with {subscribe_result['qos']}")
@@ -82,6 +82,7 @@ class SensorPublisher:
         print("Disconnected!")
 
     # Callback when connection is accidentally lost.
+    @staticmethod
     def on_connection_interrupted(connection, error, **kwargs):
         print(f"Connection interrupted. error: {error}")
 
@@ -94,6 +95,7 @@ class SensorPublisher:
                 sys.exit(f"Server rejected resubscribe to topic: {topic}")
 
     # Callback when an interrupted connection is re-established.
+    @staticmethod
     def on_connection_resumed(connection, return_code, session_present, **kwargs):
         print(f"Connection resumed. return_code: {return_code} session_present: {session_present}")
 
@@ -106,6 +108,7 @@ class SensorPublisher:
             resubscribe_future.add_done_callback(SensorPublisher.on_resubscribe_complete)
 
     # Callback when the subscribed topic receives a message
+    @staticmethod
     def on_message_received(topic, payload, dup, qos, retain, **kwargs):
         print(f"Received {payload} from topic {topic}")
         print(f"The arguments into message received were {kwargs}")
