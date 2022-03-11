@@ -63,13 +63,17 @@ class SensorPublisher:
         
         self.reading_timer.start()
 
+    def stop_sensor(self):
+        print("Stopping sensor timer")
+        self.reading_timer.cancel()
+
     def subscribe_control_messages(self):
         # Subscribe
         print(f"Subscribing to topic {self.topic}")
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
             topic=self.topic,
             qos=mqtt.QoS.AT_LEAST_ONCE,
-            callback=SensorPublisher.on_message_received)
+            callback=self.on_message_received)
 
         subscribe_result = subscribe_future.result()
         print(f"Subscribed with {subscribe_result['qos']}")
@@ -108,10 +112,14 @@ class SensorPublisher:
             resubscribe_future.add_done_callback(SensorPublisher.on_resubscribe_complete)
 
     # Callback when the subscribed topic receives a message
-    @staticmethod
-    def on_message_received(topic, payload, dup, qos, retain, **kwargs):
+    def on_message_received(self, topic, payload, dup, qos, retain, **kwargs):
         print(f"Received {payload} from topic {topic}")
         print(f"The arguments into message received were {kwargs}")
+        payload_json = json.loads(payload)
+        if payload_json['volume_gallons'] > 3:
+            print("---------------The reading is higher than 3")
+            self.stop_sensor()
+            disconnect_mqtt()
 
     def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
         """_summary_
