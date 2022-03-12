@@ -19,11 +19,12 @@ class RepeatTimer(Timer):
 
 class SensorPublisher:
 
-    def __init__(self, verbosity, endpoint, port, topic, cert, key, root_ca, client_id, seconds_between=10):
+    def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, seconds_between=10):
         self.reading_timer = None
         self.endpoint = endpoint
         self.port = port
         self.topic = topic
+        self.control_topic = control_topic
         self.cert = cert
         self.key = key
         self.root_ca = root_ca
@@ -69,9 +70,11 @@ class SensorPublisher:
 
     def subscribe_control_messages(self):
         # Subscribe
-        print(f"Subscribing to topic {self.topic}")
+
+        subscribe_topic = self.control_topic
+        print(f"Subscribing to topic {subscribe_topic}")
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
-            topic=self.topic,
+            topic=subscribe_topic,
             qos=mqtt.QoS.AT_LEAST_ONCE,
             callback=self.on_message_received)
 
@@ -114,12 +117,18 @@ class SensorPublisher:
     # Callback when the subscribed topic receives a message
     def on_message_received(self, topic, payload, dup, qos, retain, **kwargs):
         print(f"Received {payload} from topic {topic}")
-        print(f"The arguments into message received were {kwargs}")
         payload_json = json.loads(payload)
-        if payload_json['volume_gallons'] > 3:
-            print("---------------The reading is higher than 3")
+        command = payload_json['command']
+        print(f"Received control command {command}")
+        if command == 'stop_sensor':
+            print("---------------Receieved command to stop sensor")
             self.stop_sensor()
-            disconnect_mqtt()
+        elif command == 'start_sensor':
+            print("---------------Receieved command to start sensor")
+            self.start_sensor()
+        else:
+            print(f"Received unknown command {command}")
+            
 
     def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
         """_summary_

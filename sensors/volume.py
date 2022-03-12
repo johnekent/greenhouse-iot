@@ -29,7 +29,8 @@ parser.add_argument('--root-ca', help="File path to root certificate authority, 
                                       "Necessary if MQTT server uses a certificate that's not already in " +
                                       "your trust store.")
 parser.add_argument('--client-id', default="greenhouse-sensor-" + str(uuid4()), help="Client ID for MQTT connection.")
-parser.add_argument('--topic', default="test/topic", help="Topic to subscribe to, and publish messages to.")
+parser.add_argument('--topic', default="greenhouse/waterlevel", help="Topic to publish messages to.")
+parser.add_argument('--control-topic', default="greenhouse/control", help="Topic to subscribe to for control.")
 parser.add_argument('--verbosity', choices=[x.name for x in io.LogLevel], default=io.LogLevel.NoLogs.name,
     help='Logging level')
 
@@ -41,7 +42,7 @@ io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 if __name__ == '__main__':
 
     seconds_between = 5
-    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
+    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
 
     sensor_publisher.start_sensor()
 
