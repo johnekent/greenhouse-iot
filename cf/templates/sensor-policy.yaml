@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Policy for greenhouse sensor
+Parameters:
+  ClientIdBase:
+    Type: String
+    Default: greenhouse-sensor
+  TopicBase:
+    Type: String
+    Default: greenhouse
+Resources:
+  SensorPolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - iot:Publish
+          - iot:Receive
+          - iot:RetainPublish
+          Resource:
+          - !Sub 'arn:aws:iot:us-east-1:${AWS::AccountId}:topic/${TopicBase}/*'
+        Statement:
+        - Effect: Allow
+          Action:
+          - iot:Subscribe
+          Resource:
+          - !Sub 'arn:aws:iot:us-east-1:${AWS::AccountId}:topicfilter/${TopicBase}/*'
+        Statement:
+        - Effect: Allow
+          Action:
+          - iot:Connect
+          Resource:
+          - !Sub 'arn:aws:iot:us-east-1:${AWS::AccountId}:client/${ClientIdBase}-*'
+      PolicyName: !Sub '${ClientIdBase}-policy'
+Outputs:
+  SensorPolicyArn:
+    Value: !Ref SensorPolicy
