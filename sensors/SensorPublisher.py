@@ -127,8 +127,7 @@ class SensorPublisher:
             print("---------------Receieved command to start sensor")
             self.start_sensor()
         else:
-            print(f"Received unknown command {command}")
-            
+            print(f"Received unknown command {command}")            
 
     def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
         """_summary_
