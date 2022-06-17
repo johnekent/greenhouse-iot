@@ -46,4 +46,6 @@ if __name__ == '__main__':
 
     sensor_publisher.start_sensor()
 
-    sensor_publisher.subscribe_control_messages()
+    x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
+    x.start()
+    print(f"Started control thread as {x}")
