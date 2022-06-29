@@ -11,6 +11,8 @@ from uuid import uuid4
 import json
 import random
 from threading import Timer
+import board
+import adafruit_dht as adafruit_dht
 
 class RepeatTimer(Timer):
     def run(self):
@@ -36,6 +38,8 @@ class SensorPublisher:
 
         self.mqtt_connection = self.create_connection(endpoint, port, cert, key, root_ca, client_id)
 
+        self.dht_device = adafruit_dht.DHT22(board.D17, use_pulseio=False)
+
     ### Sensor functionality
     def publish_volume(self, mqtt_connection, topic, message):
 
@@ -48,7 +52,19 @@ class SensorPublisher:
 
     def measure_volume(self):
         volume_reading = random.uniform(0, 5)
-        message = {"location": "hydro_1", "volume_gallons": volume_reading}
+
+
+        t_c = None
+        t_f = None
+        h = None
+        try:
+            t_c = self.dht_device.temperature
+            t_f = t_c * (9/5) + 32
+            h = self.dht_device.humidity
+        except RuntimeError as rte:
+            print(f"Received {rte} while obtaining temperature and humidity")
+        
+        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_celsius": t_c, "temp_fahrenheit": t_f, "humidity": h}
         print(f"Measured {message}")
         return message        
 
