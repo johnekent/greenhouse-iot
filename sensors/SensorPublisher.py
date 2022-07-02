@@ -13,6 +13,8 @@ import random
 from threading import Timer
 import board
 import adafruit_dht as adafruit_dht
+import SI1145.SI1145 as SI1145
+
 
 class RepeatTimer(Timer):
     def run(self):
@@ -38,10 +40,13 @@ class SensorPublisher:
 
         self.mqtt_connection = self.create_connection(endpoint, port, cert, key, root_ca, client_id)
 
+        # TODO:  put error handling around these connection creations
         self.dht_device = adafruit_dht.DHT22(board.D17, use_pulseio=False)
+        self.light_sensor = SI1145.SI1145()
+
 
     ### Sensor functionality
-    def publish_volume(self, mqtt_connection, topic, message):
+    def publish_metrics(self, mqtt_connection, topic, message):
 
         if not isinstance(message, str):
             raise ValueError(f"The argument for message must be a string but it was {type(message)}")
@@ -50,27 +55,55 @@ class SensorPublisher:
         result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
         print(f"The result of publish is {result}")
 
-    def measure_volume(self):
-        volume_reading = random.uniform(0, 5)
+    @staticmethod
+    def get_light_metrics(sensor):
 
+        message = None
 
+        try:
+            vis = sensor.readVisible()
+            IR = sensor.readIR()
+            UV = sensor.readUV()
+            uvIndex = UV / 100.0
+
+            message = {"visible": vis, "IR": IR, "UV": UV, "UV_index": uvIndex}
+
+        except RuntimeError as rte: 
+            print(f"The attempt to read the light sensor failed with {rte}")
+
+        return message
+
+    @staticmethod
+    def get_temp_humidity_metrics(device):
         t_c = None
         t_f = None
         h = None
         try:
-            t_c = self.dht_device.temperature
+            t_c = device.temperature
             t_f = t_c * (9/5) + 32
-            h = self.dht_device.humidity
+            h = device.humidity
         except RuntimeError as rte:
             print(f"Received {rte} while obtaining temperature and humidity")
+ 
+        temp_humidity_metrics = {"temp_celsius": t_c, "temp_fahrenheit": t_f, "humidity": h}
+        return temp_humidity_metrics
         
-        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_celsius": t_c, "temp_fahrenheit": t_f, "humidity": h}
+
+    def measure_environment(self):
+        volume_reading = random.uniform(0, 5)
+
+
+        ### read sensor data
+        th_metrics = SensorPublisher.get_temp_humidity_metrics(self.dht_device)
+        light_metrics = SensorPublisher.get_light_metrics(self.light_sensor)
+        
+        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics}
         print(f"Measured {message}")
         return message        
 
     def send_measurement(self):
-        message = self.measure_volume()
-        self.publish_volume (self.mqtt_connection, self.topic, json.dumps(message))
+        message = self.measure_environment()
+        self.publish_metrics (self.mqtt_connection, self.topic, json.dumps(message))
 
 
     ### Timer and Topic Configuration
