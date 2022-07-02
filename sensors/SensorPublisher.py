@@ -1,29 +1,54 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: Apache-2.0.
+"""
+SensorPublisher
 
-import argparse
-from awscrt import io, mqtt, auth, http
-from awsiot import mqtt_connection_builder
-import sys
-import threading
-import time
-from uuid import uuid4
+Take measurements and put to MQTT.
+Accepts messages from control MQTT.
+"""
+
 import json
 import random
+import sys
 from threading import Timer
+
+from awscrt import io, mqtt
+from awsiot import mqtt_connection_builder
 import board
 import adafruit_dht as adafruit_dht
 import SI1145.SI1145 as SI1145
 
 
+
 class RepeatTimer(Timer):
+    """class RepeatTimer
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
+    """
     def run(self):
         while not self.finished.wait(self.interval):
-            self.function(*self.args, **self.kwargs)      
-
+            self.function(*self.args, **self.kwargs)
 class SensorPublisher:
+    """Handles the sensing and publishing
+    """
 
     def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, seconds_between=10):
+        """_summary_
+
+        Args:
+            verbosity (_type_): _description_
+            endpoint (_type_): MQTT connection endpoint
+            port (_type_): MQTT connection port
+            topic (_type_): Publish measurement messages to this topic
+            control_topic (_type_): Receive control messages from this topic
+            cert (_type_): _description_
+            key (_type_): _description_
+            root_ca (_type_): _description_
+            client_id (_type_): _description_
+            seconds_between (int, optional): Time between measurements.  Defaults to 10.
+        """
         self.reading_timer = None
         self.endpoint = endpoint
         self.port = port
@@ -36,45 +61,69 @@ class SensorPublisher:
         self.seconds_between = seconds_between
 
         io.init_logging(getattr(io.LogLevel, verbosity), 'stderr')
-        print("Initializing")
+        print(f"Initializing the measuring publisher.  Messages sent to topic {self.topic} and controls receieved from topic {self.control_topic}")
 
         self.mqtt_connection = self.create_connection(endpoint, port, cert, key, root_ca, client_id)
 
-        # TODO:  put error handling around these connection creations
+        # If there is an exception on creating these then let it fail
         self.dht_device = adafruit_dht.DHT22(board.D17, use_pulseio=False)
         self.light_sensor = SI1145.SI1145()
 
-
     ### Sensor functionality
     def publish_metrics(self, mqtt_connection, topic, message):
+        """Write message to topic using connection
+
+        Args:
+            mqtt_connection (_type_): _description_
+            topic (_type_): _description_
+            message (_type_): _description_
+
+        Raises:
+            ValueError: _description_
+        """
 
         if not isinstance(message, str):
-            raise ValueError(f"The argument for message must be a string but it was {type(message)}")
+            raise ValueError(f"Expected string argument for message but got {type(message)}")
 
-        print(f"Publishing message {message} to topic {topic}")
         result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
-        print(f"The result of publish is {result}")
+        print(f"Published message {message} to topic {topic} with result {result}")
 
     @staticmethod
     def get_light_metrics(sensor):
+        """Take readings from sensor
+
+        Args:
+            sensor (SI1145): an initiated SI1145 sensor
+
+        Returns:
+            dict: visible, IR, UV, UV_index
+        """
 
         message = None
 
         try:
             vis = sensor.readVisible()
-            IR = sensor.readIR()
-            UV = sensor.readUV()
-            uvIndex = UV / 100.0
+            ir = sensor.readIR()
+            uv = sensor.readUV()
+            uv_index = uv / 100.0
 
-            message = {"visible": vis, "IR": IR, "UV": UV, "UV_index": uvIndex}
+            message = {"visible": vis, "IR": ir, "UV": uv, "UV_index": uv_index}
 
-        except RuntimeError as rte: 
+        except RuntimeError as rte:
             print(f"The attempt to read the light sensor failed with {rte}")
 
         return message
 
     @staticmethod
     def get_temp_humidity_metrics(device):
+        """_summary_
+
+        Args:
+            device (adafruit_dht): Temp and Humidity Device
+
+        Returns:
+            dict: temp_celsius, temp_fahrenheit, humidity
+        """
         t_c = None
         t_f = None
         h = None
@@ -84,42 +133,52 @@ class SensorPublisher:
             h = device.humidity
         except RuntimeError as rte:
             print(f"Received {rte} while obtaining temperature and humidity")
- 
+
         temp_humidity_metrics = {"temp_celsius": t_c, "temp_fahrenheit": t_f, "humidity": h}
         return temp_humidity_metrics
-        
 
     def measure_environment(self):
-        volume_reading = random.uniform(0, 5)
+        """Call all of the sensors to take measurements
 
+        Returns:
+            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics)
+        """
+        volume_reading = random.uniform(0, 5)
 
         ### read sensor data
         th_metrics = SensorPublisher.get_temp_humidity_metrics(self.dht_device)
         light_metrics = SensorPublisher.get_light_metrics(self.light_sensor)
-        
+
         message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics}
         print(f"Measured {message}")
-        return message        
+        return message
 
     def send_measurement(self):
+        """A method that takes and publishes metrics.
+        This is the single method invoked by the RepeatTimer
+        """
         message = self.measure_environment()
-        self.publish_metrics (self.mqtt_connection, self.topic, json.dumps(message))
-
+        self.publish_metrics(self.mqtt_connection, self.topic, json.dumps(message))
 
     ### Timer and Topic Configuration
     def start_sensor(self):
+        """Create the timer and start it
+        """
         if not self.reading_timer:
             self.reading_timer = RepeatTimer(self.seconds_between, self.send_measurement)
-        
+
         self.reading_timer.start()
 
     def stop_sensor(self):
+        """Cancel the timer
+        """
         print("Stopping sensor timer")
         self.reading_timer.cancel()
 
     def subscribe_control_messages(self):
+        """Subscribe to control messages and set the callback (on_message_received)
+        """
         # Subscribe
-
         subscribe_topic = self.control_topic
         print(f"Subscribing to topic {subscribe_topic}")
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
@@ -131,18 +190,31 @@ class SensorPublisher:
         print(f"Subscribed with {subscribe_result['qos']}")
 
     def disconnect_mqtt(self):
+        """Disconnect from mqtt
+        """
         # Disconnect
         print("Disconnecting...")
         disconnect_future = self.mqtt_connection.disconnect()
         disconnect_future.result()
-        print("Disconnected!")
+        print("Disconnected from MQTT!")
 
-    # Callback when connection is accidentally lost.
     @staticmethod
     def on_connection_interrupted(connection, error, **kwargs):
+        """ Callback when connection is accidentally lost.
+
+        Args:
+            connection (_type_): MQTT connection
+            error (_type_): The error from the disconnect
+        """
         print(f"Connection interrupted. error: {error}")
 
+    @staticmethod
     def on_resubscribe_complete(resubscribe_future):
+        """Callback when resubscribe to topic is completed
+
+        Args:
+            resubscribe_future (_type_): _description_
+        """
         resubscribe_results = resubscribe_future.result()
         print(f"Resubscribe results: {resubscribe_results}")
 
@@ -150,9 +222,15 @@ class SensorPublisher:
             if qos is None:
                 sys.exit(f"Server rejected resubscribe to topic: {topic}")
 
-    # Callback when an interrupted connection is re-established.
     @staticmethod
     def on_connection_resumed(connection, return_code, session_present, **kwargs):
+        """ Callback when an interrupted connection is re-established.
+
+        Args:
+            connection (_type_): _description_
+            return_code (_type_): _description_
+            session_present (_type_): _description_
+        """
         print(f"Connection resumed. return_code: {return_code} session_present: {session_present}")
 
         if return_code == mqtt.ConnectReturnCode.ACCEPTED and not session_present:
@@ -163,8 +241,17 @@ class SensorPublisher:
             # evaluate result with a callback instead.
             resubscribe_future.add_done_callback(SensorPublisher.on_resubscribe_complete)
 
-    # Callback when the subscribed topic receives a message
     def on_message_received(self, topic, payload, dup, qos, retain, **kwargs):
+        """ Callback when the subscribed topic receives a message from the control topic
+        Handles the control topic message (such as stop_sensor or start_sensor)
+
+        Args:
+            topic (_type_): _description_
+            payload (_type_): _description_
+            dup (_type_): _description_
+            qos (_type_): _description_
+            retain (_type_): _description_
+        """
         print(f"Received {payload} from topic {topic}")
         payload_json = json.loads(payload)
         command = payload_json['command']
@@ -176,7 +263,7 @@ class SensorPublisher:
             print("---------------Receieved command to start sensor")
             self.start_sensor()
         else:
-            print(f"Received unknown command {command}")            
+            print(f"Received unknown command {command}")
 
     def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
         """_summary_
