@@ -14,7 +14,7 @@ from awscrt import io, mqtt
 from awsiot import mqtt_connection_builder
 import board
 import adafruit_dht as adafruit_dht
-import SI1145.SI1145 as SI1145
+import SI1145.SI1145 as SI1145_probe
 from DS18b20_Probe import DS18b20Probe
 
 
@@ -68,7 +68,7 @@ class SensorPublisher:
 
         # If there is an exception on creating these then let it fail
         self.dht_device = adafruit_dht.DHT22(board.D17, use_pulseio=False)
-        self.light_sensor = SI1145.SI1145()
+        self.light_sensor = SI1145_probe.SI1145()
         self.water_probe = DS18b20Probe()
 
     ### Sensor functionality
