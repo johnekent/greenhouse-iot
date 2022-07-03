@@ -1,4 +1,4 @@
-"""DS18b20_Probe
+"""Water_Probe
 Class for reading from the probe's output.
 """
 import os
@@ -6,7 +6,7 @@ import glob
 import time
 from pathlib import Path
 
-class DS18b20Probe:
+class WaterProbe:
     """Class to represent a DS18b20 one wire probe for reading.
     Works well when connected to GPIO4 input
     """
@@ -40,11 +40,11 @@ class DS18b20Probe:
 
         return lines
 
-    def read_temp(self):
+    def read(self):
         """Read the temperature values from the file
 
         Returns:
-            tuple of (temperature C, temperature F): temperature readings
+            dict:  {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
         """
         lines = self.read_temp_raw()
         while lines[0].strip()[-3:] != 'YES':
@@ -55,4 +55,5 @@ class DS18b20Probe:
             temp_string = lines[1][equals_pos+2:]
             temp_c = float(temp_string) / 1000.0
             temp_f = temp_c * 9.0 / 5.0 + 32.0
-            return (temp_c, temp_f)
+
+            return {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
