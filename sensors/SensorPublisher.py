@@ -15,6 +15,7 @@ from awsiot import mqtt_connection_builder
 import board
 import adafruit_dht as adafruit_dht
 import SI1145.SI1145 as SI1145
+from DS18b20_Probe import DS18b20Probe
 
 
 
@@ -68,6 +69,7 @@ class SensorPublisher:
         # If there is an exception on creating these then let it fail
         self.dht_device = adafruit_dht.DHT22(board.D17, use_pulseio=False)
         self.light_sensor = SI1145.SI1145()
+        self.water_probe = DS18b20Probe()
 
     ### Sensor functionality
     def publish_metrics(self, mqtt_connection, topic, message):
@@ -102,12 +104,12 @@ class SensorPublisher:
         message = None
 
         try:
-            vis = sensor.readVisible()
-            ir = sensor.readIR()
-            uv = sensor.readUV()
-            uv_index = uv / 100.0
+            visible_light = sensor.readVisible()
+            infra_red = sensor.readIR()
+            ultra_violet = sensor.readUV()
+            uv_index = ultra_violet / 100.0
 
-            message = {"visible": vis, "IR": ir, "UV": uv, "UV_index": uv_index}
+            message = {"visible": visible_light, "IR": infra_red, "UV": ultra_violet, "UV_index": uv_index}
 
         except RuntimeError as rte:
             print(f"The attempt to read the light sensor failed with {rte}")
@@ -124,32 +126,48 @@ class SensorPublisher:
         Returns:
             dict: temp_celsius, temp_fahrenheit, humidity
         """
-        t_c = None
-        t_f = None
-        h = None
+        temp_c = None
+        temp_f = None
+        humidity = None
         try:
-            t_c = device.temperature
-            t_f = t_c * (9/5) + 32
-            h = device.humidity
+            temp_c = device.temperature
+            temp_f = temp_c * (9/5) + 32
+            humidity = device.humidity
         except RuntimeError as rte:
             print(f"Received {rte} while obtaining temperature and humidity")
 
-        temp_humidity_metrics = {"temp_celsius": t_c, "temp_fahrenheit": t_f, "humidity": h}
+        temp_humidity_metrics = {"temp_celsius": temp_c, "temp_fahrenheit": temp_f, "humidity": humidity}
         return temp_humidity_metrics
+
+    @staticmethod
+    def get_water_temp_metrics(probe: DS18b20Probe):
+        """Read water temp from probe
+
+        Args:
+            probe (DS18b20Probe): access to probe output
+
+        Returns:
+            dict: {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
+        """
+
+        (temp_c, temp_f) = probe.read_temp()
+
+        return {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
 
     def measure_environment(self):
         """Call all of the sensors to take measurements
 
         Returns:
-            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics)
+            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics), water (from get_water_temp_metrics)
         """
         volume_reading = random.uniform(0, 5)
 
         ### read sensor data
         th_metrics = SensorPublisher.get_temp_humidity_metrics(self.dht_device)
         light_metrics = SensorPublisher.get_light_metrics(self.light_sensor)
+        water_metrics = SensorPublisher.get_water_temp_metrics(self.water_probe)
 
-        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics}
+        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "water": water_metrics}
         print(f"Measured {message}")
         return message
 
