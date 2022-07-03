@@ -13,9 +13,10 @@ from threading import Timer
 from awscrt import io, mqtt
 from awsiot import mqtt_connection_builder
 
-from Temp_Humidity_Sensor import TempHumiditySensor
-from Light_Sensor import LightSensor
-from Water_Probe import WaterProbe
+from temp_humidity_sensor import TempHumiditySensor
+from light_sensor import LightSensor
+from water_probe import WaterProbe
+
 class RepeatTimer(Timer):
     """class RepeatTimer
 
@@ -68,6 +69,23 @@ class SensorPublisher:
         self.light_sensor = LightSensor()
         self.water_probe = WaterProbe()
 
+    def measure_environment(self):
+        """Call all of the sensors to take measurements
+
+        Returns:
+            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics), water (from get_water_temp_metrics)
+        """
+        volume_reading = random.uniform(0, 5)
+
+        ### read sensor data
+        th_metrics = self.temp_humidity_sensor.read()
+        light_metrics = self.light_sensor.read()
+        water_metrics = self.water_probe.read()
+
+        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "water": water_metrics}
+        print(f"Measured {message}")
+        return message
+
     def publish_metrics(self, mqtt_connection, topic, message):
         """Write message to topic using connection
 
@@ -85,23 +103,6 @@ class SensorPublisher:
 
         result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
         print(f"Published message {message} to topic {topic} with result {result}")
-
-    def measure_environment(self):
-        """Call all of the sensors to take measurements
-
-        Returns:
-            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics), water (from get_water_temp_metrics)
-        """
-        volume_reading = random.uniform(0, 5)
-
-        ### read sensor data
-        th_metrics = self.SensorPublisher.read()
-        light_metrics = self.light_sensor.read()
-        water_metrics = self.water_probe.read()
-
-        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "water": water_metrics}
-        print(f"Measured {message}")
-        return message
 
     def send_measurement(self):
         """A method that takes and publishes metrics.
@@ -216,7 +217,7 @@ class SensorPublisher:
             print(f"Received unknown command {command}")
 
     def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
-        """_summary_
+        """ Create MQTT connection and register callbacks
 
         Args:
             endpoint (_type_): _description_

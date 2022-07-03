@@ -1,17 +1,17 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0.
+""" driver.py
+
+Creates sensor and attaches to control plane
+"""
 
 import argparse
-from awscrt import io
-import sys
 import threading
-import time
 from uuid import uuid4
-import json
-import random
-from threading import Timer
 
-from SensorPublisher import SensorPublisher
+from awscrt import io
+
+from sensor_publisher import SensorPublisher
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -41,9 +41,7 @@ io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 
 if __name__ == '__main__':
 
-    seconds_between = 5
-    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between)
-
+    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between=5)
     sensor_publisher.start_sensor()
 
     x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
