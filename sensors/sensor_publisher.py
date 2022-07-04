@@ -94,7 +94,6 @@ class SensorPublisher:
         timestamp = {"datetime": now.strftime("%c"), "day_of_year": now.strftime("%j"), "time": now.strftime("%H:%M:%S.%f")}
 
         message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
-        print(f"Measured {message}")
         return message
 
     def publish_metrics(self, mqtt_connection, topic, message):
