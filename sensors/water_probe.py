@@ -18,7 +18,11 @@ class WaterProbe:
         Raises RuntimeError if the device file is not found
         """
 
-        self.connect_sensor()
+        try:
+            self.connect_sensor()
+        except RuntimeError as rte:
+            print(f"Failed to get connection in constructor.  Reads will retry.  Error: {rte}")
+
 
     def connect_sensor(self):
         os.system('modprobe w1-gpio')
@@ -49,7 +53,10 @@ class WaterProbe:
         lines = []
 
         if not self.device_file:  # if it's not been connected try to connect
-            self.connect_sensor()
+            try:
+                self.connect_sensor()
+            except RuntimeError as rte:
+                print(f"Failed to get connection in read process.  Will continue to retry.  Error: {rte}")            
         
         if self.device_file:  # if we now or did have the file get the contents
             with open(self.device_file, 'r', encoding='ascii') as file:
