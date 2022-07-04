@@ -27,6 +27,10 @@ class RepeatTimer(Timer):
         _type_: _description_
     """
     def run(self):
+
+        # run it before waiting to run it more -- probably nicer way to do this but get it done for now
+        self.function(*self.args, **self.kwargs)
+
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 class SensorPublisher:
