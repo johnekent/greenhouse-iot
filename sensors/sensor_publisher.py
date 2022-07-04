@@ -5,6 +5,7 @@ Take measurements and put to MQTT.
 Accepts messages from control MQTT.
 """
 
+from datetime import datetime
 import json
 import random
 import sys
@@ -77,7 +78,7 @@ class SensorPublisher:
         """Call all of the sensors to take measurements
 
         Returns:
-            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics), water (from get_water_temp_metrics)
+            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics), water (from get_water_temp_metrics), timestamp
         """
         volume_reading = random.uniform(0, 5)
 
@@ -86,7 +87,10 @@ class SensorPublisher:
         light_metrics = self.light_sensor.read()
         water_metrics = self.water_probe.read()
 
-        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "water": water_metrics}
+        now = datetime.now()
+        timestamp = {"datetime": now.strftime("%c"), "day_of_year": now.strftime("%j"), "time": now.strftime("%H:%M:%S.%f")}
+
+        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "water": water_metrics, "timestamp": timestamp}
         print(f"Measured {message}")
         return message
 
