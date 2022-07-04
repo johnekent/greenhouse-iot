@@ -44,9 +44,9 @@ io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 
 if __name__ == '__main__':
 
-    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between=120)
+    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between=30)
     sensor_publisher.start_sensor()
 
     x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
     x.start()
-    print(f"Started control thread as {x}")
+    logging.info(f"Started control thread as {x}")
