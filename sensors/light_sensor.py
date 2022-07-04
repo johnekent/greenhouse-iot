@@ -1,6 +1,7 @@
 """ Light_Sensor.py
 An abstraction of a light sensor.
 """
+import logging
 import SI1145.SI1145 as SI1145_probe
 
 class LightSensor:
@@ -27,8 +28,9 @@ class LightSensor:
             metrics = {"visible": visible_light, "IR": infra_red, "UV": ultra_violet, "UV_index": uv_index}
 
         except RuntimeError as rte:
-            print(f"The attempt to read the light sensor failed with {rte}")
+            logging.error(f"The attempt to read the light sensor failed with {rte}")
         except OSError as ose:
-            print(f"The attempt to read the light sensor failed with {ose}")
+            logging.error(f"The attempt to read the light sensor failed with {ose}")
 
+        logging.debug(f"LightSensor.read() returning {metrics}")
         return metrics

@@ -7,6 +7,7 @@ Accepts messages from control MQTT.
 
 from datetime import datetime
 import json
+import logging
 import random
 import sys
 from threading import Timer
@@ -66,7 +67,7 @@ class SensorPublisher:
         self.seconds_between = seconds_between
 
         io.init_logging(getattr(io.LogLevel, verbosity), 'stderr')
-        print(f"Initializing the measuring publisher.  Messages sent to topic {self.topic} and controls receieved from topic {self.control_topic}")
+        logging.info(f"Initializing the measuring publisher.  Messages sent to topic {self.topic} and controls receieved from topic {self.control_topic}")
 
         self.mqtt_connection = self.create_connection(endpoint, port, cert, key, root_ca, client_id)
 
@@ -112,7 +113,7 @@ class SensorPublisher:
             raise ValueError(f"Expected string argument for message but got {type(message)}")
 
         result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
-        print(f"Published message {message} to topic {topic} with result {result}")
+        logging.info(f"Published message {message} to topic {topic} with result {result}")
 
     def send_measurement(self):
         """A method that takes and publishes metrics.
@@ -133,7 +134,7 @@ class SensorPublisher:
     def stop_sensor(self):
         """Cancel the timer
         """
-        print("Stopping sensor timer")
+        logging.info("Stopping sensor timer")
         self.reading_timer.cancel()
 
     def subscribe_control_messages(self):
@@ -141,23 +142,23 @@ class SensorPublisher:
         """
         # Subscribe
         subscribe_topic = self.control_topic
-        print(f"Subscribing to topic {subscribe_topic}")
+        logging.info(f"Subscribing to topic {subscribe_topic}")
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
             topic=subscribe_topic,
             qos=mqtt.QoS.AT_LEAST_ONCE,
             callback=self.on_message_received)
 
         subscribe_result = subscribe_future.result()
-        print(f"Subscribed with {subscribe_result['qos']}")
+        logging.info(f"Subscribed with {subscribe_result['qos']}")
 
     def disconnect_mqtt(self):
         """Disconnect from mqtt
         """
         # Disconnect
-        print("Disconnecting...")
+        logging.debug("Disconnecting...")
         disconnect_future = self.mqtt_connection.disconnect()
         disconnect_future.result()
-        print("Disconnected from MQTT!")
+        logging.info("Disconnected from MQTT!")
 
     @staticmethod
     def on_connection_interrupted(connection, error, **kwargs):
@@ -167,7 +168,7 @@ class SensorPublisher:
             connection (_type_): MQTT connection
             error (_type_): The error from the disconnect
         """
-        print(f"Connection interrupted. error: {error}")
+        logging.error(f"Connection interrupted. error: {error}")
 
     @staticmethod
     def on_resubscribe_complete(resubscribe_future):
@@ -177,7 +178,7 @@ class SensorPublisher:
             resubscribe_future (_type_): _description_
         """
         resubscribe_results = resubscribe_future.result()
-        print(f"Resubscribe results: {resubscribe_results}")
+        logging.info(f"Resubscribe results: {resubscribe_results}")
 
         for topic, qos in resubscribe_results['topics']:
             if qos is None:
@@ -192,10 +193,10 @@ class SensorPublisher:
             return_code (_type_): _description_
             session_present (_type_): _description_
         """
-        print(f"Connection resumed. return_code: {return_code} session_present: {session_present}")
+        logging.info(f"Connection resumed. return_code: {return_code} session_present: {session_present}")
 
         if return_code == mqtt.ConnectReturnCode.ACCEPTED and not session_present:
-            print("Session did not persist. Resubscribing to existing topics...")
+            logging.info("Session did not persist. Resubscribing to existing topics...")
             resubscribe_future, _ = connection.resubscribe_existing_topics()
 
             # Cannot synchronously wait for resubscribe result because we're on the connection's event-loop thread,
@@ -213,18 +214,21 @@ class SensorPublisher:
             qos (_type_): _description_
             retain (_type_): _description_
         """
-        print(f"Received {payload} from topic {topic}")
+        logging.info(f"Received {payload} from topic {topic}")
         payload_json = json.loads(payload)
         command = payload_json['command']
-        print(f"Received control command {command}")
+        logging.info(f"Received control command {command}")
+        
         if command == 'stop_sensor':
-            print("---------------Receieved command to stop sensor")
+            logging.info("---------------Receieved command to stop sensor")
             self.stop_sensor()
+        
         elif command == 'start_sensor':
-            print("---------------Receieved command to start sensor")
+            logging.info("---------------Receieved command to start sensor")
             self.start_sensor()
+        
         else:
-            print(f"Received unknown command {command}")
+            logging.info(f"Received unknown command {command}")
 
     def create_connection(self, endpoint, port, cert, key, root_ca, client_id):
         """ Create MQTT connection and register callbacks
@@ -260,10 +264,10 @@ class SensorPublisher:
             keep_alive_secs=30,
             http_proxy_options=None)
 
-        print(f"Connecting to {endpoint} with client ID [{client_id}] through {mqtt_connection}...")
+        logging.info(f"Connecting to {endpoint} with client ID [{client_id}] through {mqtt_connection}...")
         connect_future = mqtt_connection.connect()
         # Future.result() waits until a result is available
         result = connect_future.result()
-        print(f"Connected with result {result}!")
+        logging.info(f"Connected with result {result}!")
 
         return mqtt_connection

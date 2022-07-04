@@ -1,6 +1,8 @@
 """ Light_Sensor.py
 An abstraction of a light sensor.
 """
+import logging
+
 import board
 import busio
 import adafruit_ltr390
@@ -27,8 +29,8 @@ class LightSensorUV:
             metrics = {"UV": sensor.uvs, "ambient": sensor.light, "UVI": sensor.uvi, "lux": sensor.lux}
 
         except RuntimeError as rte:
-            print(f"The attempt to read the light sensor uv failed with {rte}")
+            logging.error(f"The attempt to read the light sensor uv failed with {rte}")
         except OSError as ose:
-            print(f"The attempt to read the light sensor uv failed with {ose}")
+            logging.error(f"The attempt to read the light sensor uv failed with {ose}")
 
         return metrics

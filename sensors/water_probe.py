@@ -1,8 +1,9 @@
 """Water_Probe
 Class for reading from the probe's output.
 """
-import os
 import glob
+import logging
+import os
 import time
 from pathlib import Path
 
@@ -21,7 +22,7 @@ class WaterProbe:
         try:
             self.connect_sensor()
         except RuntimeError as rte:
-            print(f"Failed to get connection in constructor.  Reads will retry.  Error: {rte}")
+            logging.info(f"Failed to get connection in constructor.  Reads will retry.  Error: {rte}")
 
 
     def connect_sensor(self):
@@ -40,7 +41,7 @@ class WaterProbe:
             raise RuntimeError(f"The device file was not found in expected location: {base_dir}")
 
         if Path(self.device_file).is_file():
-            print(f"The device file is {self.device_file}")
+            logging.info(f"The device file is {self.device_file}")
         else:
             raise RuntimeError(f"Device file {self.device_file} is not a found file")
 
@@ -56,7 +57,7 @@ class WaterProbe:
             try:
                 self.connect_sensor()
             except RuntimeError as rte:
-                print(f"Failed to get connection in read process.  Will continue to retry.  Error: {rte}")            
+                logging.info(f"Failed to get connection in read process.  Will continue to retry.  Error: {rte}")            
         
         if self.device_file:  # if we now or did have the file get the contents
             with open(self.device_file, 'r', encoding='ascii') as file:
@@ -70,7 +71,7 @@ class WaterProbe:
         Returns:
             dict:  {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
         """
-        message = None
+        metrics = None
         lines = self.read_temp_raw()
 
         if lines:  # don't try to process empty content
@@ -83,6 +84,7 @@ class WaterProbe:
                 temp_c = float(temp_string) / 1000.0
                 temp_f = temp_c * 9.0 / 5.0 + 32.0
 
-                message = {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
+                metrics = {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
 
-        return message
+        logging.debug(f"WaterProbe.read() returning {metrics}")
+        return metrics

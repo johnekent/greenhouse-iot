@@ -1,6 +1,7 @@
 """ Temp_Humidity_Sensor.py
 An abstraction of a sensor.
 """
+import logging
 import adafruit_dht
 import board
 
@@ -36,6 +37,7 @@ class TempHumiditySensor:
             metrics = {"temp_celsius": temp_c, "temp_fahrenheit": temp_f, "humidity": humidity}
 
         except RuntimeError as rte:
-            print(f"Received {rte} while obtaining temperature and humidity")
+            logging.error(f"Received {rte} while obtaining temperature and humidity")
 
+        logging.debug(f"TempHumiditySensor.read() returning {metrics}")
         return metrics
