@@ -16,6 +16,7 @@ from awsiot import mqtt_connection_builder
 
 from temp_humidity_sensor import TempHumiditySensor
 from light_sensor import LightSensor
+from light_sensor_uv import LightSensorUV
 from water_probe import WaterProbe
 
 class RepeatTimer(Timer):
@@ -72,25 +73,27 @@ class SensorPublisher:
         # If there is an exception on creating these then let it fail
         self.temp_humidity_sensor = TempHumiditySensor()
         self.light_sensor = LightSensor()
+        self.light_sensor_uv = LightSensorUV()
         self.water_probe = WaterProbe()
 
     def measure_environment(self):
         """Call all of the sensors to take measurements
 
         Returns:
-            dict: location, volume_gallons, temp_humidity (from get_temp_humidity_metrics), light (from get_light_metrics), water (from get_water_temp_metrics), timestamp
+            dict: location, volume_gallons, temp_humidity (from temp_humidity_sensor), light (from light_sensor), light_uv (from light_sensor_uv),water (from water_probe), timestamp
         """
         volume_reading = random.uniform(0, 5)
 
         ### read sensor data
         th_metrics = self.temp_humidity_sensor.read()
         light_metrics = self.light_sensor.read()
+        light_metrics_uv = self.light_sensor_uv.read()
         water_metrics = self.water_probe.read()
 
         now = datetime.now()
         timestamp = {"datetime": now.strftime("%c"), "day_of_year": now.strftime("%j"), "time": now.strftime("%H:%M:%S.%f")}
 
-        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "water": water_metrics, "timestamp": timestamp}
+        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
         print(f"Measured {message}")
         return message
 
