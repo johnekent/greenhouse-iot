@@ -51,7 +51,7 @@ if __name__ == '__main__':
     thing_name = None
     if configs:
         thing_name = config['DEFAULT']['thing_name'] or "Unnamed_Device"
-        polling_interval = config['DEFAULT']['polling_interval'] or 30
+        polling_interval = int(config['DEFAULT']['polling_interval']) or 30
     else:
         logging.warning(f"The configuration expected in {config_file} was not found so using all defaults.")
 
