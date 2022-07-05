@@ -40,7 +40,7 @@ class SensorPublisher:
     """Handles the sensing and publishing
     """
 
-    def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, seconds_between=10):
+    def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, thing_name, seconds_between=10):
         """_summary_
 
         Args:
@@ -53,6 +53,7 @@ class SensorPublisher:
             key (_type_): _description_
             root_ca (_type_): _description_
             client_id (_type_): _description_
+            thing_name (str): name of the device
             seconds_between (int, optional): Time between measurements.  Defaults to 10.
         """
         self.reading_timer = None
@@ -64,6 +65,7 @@ class SensorPublisher:
         self.key = key
         self.root_ca = root_ca
         self.client_id = client_id
+        self.thing_name = thing_name
         self.seconds_between = seconds_between
 
         io.init_logging(getattr(io.LogLevel, verbosity), 'stderr')
@@ -94,7 +96,7 @@ class SensorPublisher:
         now = datetime.now()
         timestamp = {"datetime": now.strftime("%c"), "day_of_year": now.strftime("%j"), "time": now.strftime("%H:%M:%S.%f")}
 
-        message = {"location": "hydro_1", "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
+        message = {"location": self.thing_name, "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
         return message
 
     def publish_metrics(self, mqtt_connection, topic, message):

@@ -6,6 +6,7 @@ Creates sensor and attaches to control plane
 """
 
 import argparse
+import configparser
 import logging
 import threading
 from uuid import uuid4
@@ -44,7 +45,17 @@ io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 
 if __name__ == '__main__':
 
-    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between=30)
+    config_file = '/home/pi/iot/config.ini'
+    config = configparser.ConfigParser()
+    configs = config.read(config_file)
+    thing_name = None
+    if configs:
+        thing_name = config['DEFAULT']['thing_name'] or "Unnamed_Device"
+        polling_interval = config['DEFAULT']['polling_interval'] or 30
+    else:
+        logging.warning(f"The configuration expected in {config_file} was not found so using all defaults.")
+
+    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between=polling_interval, thing_name=thing_name)
     sensor_publisher.start_sensor()
 
     x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
