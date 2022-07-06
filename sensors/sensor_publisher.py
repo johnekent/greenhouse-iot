@@ -114,6 +114,7 @@ class SensorPublisher:
         if not isinstance(message, str):
             raise ValueError(f"Expected string argument for message but got {type(message)}")
 
+        #TODO:  add error handling and resiliency for loss of network connection to publish
         result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
         logging.info(f"Published message {message} to topic {topic} with result {result}")
 
