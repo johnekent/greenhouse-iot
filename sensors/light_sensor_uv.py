@@ -33,4 +33,5 @@ class LightSensorUV:
         except OSError as ose:
             logging.error(f"The attempt to read the light sensor uv failed with {ose}")
 
+        logging.debug(f"LightSensorUV.read() returning {metrics}")
         return metrics
