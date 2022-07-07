@@ -1,5 +1,6 @@
 awscrt==0.13.3
 awsiotsdk==1.9.2
 adafruit-circuitpython-dht
-SI1145
 adafruit-circuitpython-ltr390
+adafruit-circuitpython-ahtx0
+SI1145

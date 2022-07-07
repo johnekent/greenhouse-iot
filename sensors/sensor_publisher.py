@@ -16,6 +16,7 @@ from awscrt import io, mqtt
 from awsiot import mqtt_connection_builder
 
 from temp_humidity_sensor import TempHumiditySensor
+from temp_humidity_sensor_i2c import TempHumiditySensorI2C
 from light_sensor import LightSensor
 from light_sensor_uv import LightSensorUV
 from water_probe import WaterProbe
@@ -75,6 +76,7 @@ class SensorPublisher:
 
         # If there is an exception on creating these then let it fail
         self.temp_humidity_sensor = TempHumiditySensor()
+        self.temp_humidity_sensor_i2c = TempHumiditySensorI2C()
         self.light_sensor = LightSensor()
         self.light_sensor_uv = LightSensorUV()
         self.water_probe = WaterProbe()
@@ -83,12 +85,13 @@ class SensorPublisher:
         """Call all of the sensors to take measurements
 
         Returns:
-            dict: location, volume_gallons, temp_humidity (from temp_humidity_sensor), light (from light_sensor), light_uv (from light_sensor_uv),water (from water_probe), timestamp
+            dict: location, volume_gallons, temp_humidity (from temp_humidity_sensor), temp_humidity_i2c (from th_i2c_metrics) light (from light_sensor), light_uv (from light_sensor_uv),water (from water_probe), timestamp
         """
         volume_reading = random.uniform(0, 5)
 
         ### read sensor data
         th_metrics = self.temp_humidity_sensor.read()
+        th_i2c_metrics = self.temp_humidity_sensor_i2c.read()
         light_metrics = self.light_sensor.read()
         light_metrics_uv = self.light_sensor_uv.read()
         water_metrics = self.water_probe.read()
@@ -96,7 +99,7 @@ class SensorPublisher:
         now = datetime.now()
         timestamp = {"datetime": now.strftime("%c"), "day_of_year": now.strftime("%j"), "time": now.strftime("%H:%M:%S.%f")}
 
-        message = {"location": self.thing_name, "volume_gallons": volume_reading, "temp_humidity": th_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
+        message = {"location": self.thing_name, "volume_gallons": volume_reading, "temp_humidity": th_metrics, "temp_humidity_i2c": th_i2c_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
         return message
 
     def publish_metrics(self, mqtt_connection, topic, message):
