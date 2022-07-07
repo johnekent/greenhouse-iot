@@ -3,4 +3,5 @@ awsiotsdk==1.9.2
 adafruit-circuitpython-dht
 adafruit-circuitpython-ltr390
 adafruit-circuitpython-ahtx0
+melnor-bluetooth
 SI1145
