@@ -60,7 +60,20 @@ if __name__ == '__main__':
     # Client ID for MQTT connection
     client_id = f"greenhouse-sensor-{str(uuid4())}-{thing_name}"
 
-    sensor_publisher = SensorPublisher(args.verbosity, endpoint, args.port, args.topic, args.control_topic, cert, key, root_ca, seconds_between=polling_interval, thing_name=thing_name)
+    , endpoint, port, topic, control_topic, cert, key, root_ca, client_id, thing_name, seconds_between=10
+    sensor_publisher = SensorPublisher(
+        verbosity=args.verbosity,
+        endpoint=endpoint,
+        port=args.port,
+        topic=args.topic,
+        control_topic=args.control_topic,
+        cert=cert,
+        key=key,
+        root_ca=root_ca,
+        client_id=client_id,
+        seconds_between=polling_interval,
+        thing_name=thing_name)
+
     sensor_publisher.start_sensor()
 
     x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
