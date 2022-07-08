@@ -22,15 +22,7 @@ from sensor_publisher import SensorPublisher
 # since it is subscribed to that same topic.
 
 parser = argparse.ArgumentParser(description="Send and receive messages through and MQTT connection.")
-parser.add_argument('--endpoint', required=True, help="Your AWS IoT custom endpoint, not including a port. " +
-                                                      "Ex: \"abcd123456wxyz-ats.iot.us-east-1.amazonaws.com\"")
 parser.add_argument('--port', type=int, help="Specify port. AWS IoT supports 443 and 8883.")
-parser.add_argument('--cert', help="File path to your client certificate, in PEM format.")
-parser.add_argument('--key', help="File path to your private key, in PEM format.")
-parser.add_argument('--root-ca', help="File path to root certificate authority, in PEM format. " +
-                                      "Necessary if MQTT server uses a certificate that's not already in " +
-                                      "your trust store.")
-parser.add_argument('--client-id', default="greenhouse-sensor-" + str(uuid4()), help="Client ID for MQTT connection.")
 parser.add_argument('--topic', default="greenhouse/metrics", help="Topic to publish messages to.")
 parser.add_argument('--control-topic', default="greenhouse/control", help="Topic to subscribe to for control.")
 parser.add_argument('--verbosity', choices=[x.name for x in io.LogLevel], default=io.LogLevel.NoLogs.name,
@@ -48,14 +40,27 @@ if __name__ == '__main__':
     config_file = '/home/pi/iot/config.ini'
     config = configparser.ConfigParser()
     configs = config.read(config_file)
-    thing_name = None
-    if configs:
-        thing_name = config['DEFAULT']['thing_name'] or "Unnamed_Device"
-        polling_interval = int(config['DEFAULT']['polling_interval']) or 30
-    else:
-        logging.warning(f"The configuration expected in {config_file} was not found so using all defaults.")
 
-    sensor_publisher = SensorPublisher(args.verbosity, args.endpoint, args.port, args.topic, args.control_topic, args.cert, args.key, args.root_ca, args.client_id, seconds_between=polling_interval, thing_name=thing_name)
+    if not configs:
+        logging.critical("Configuration file must be provided")
+        raise RuntimeError(f"A file with relevant values must be at {config_file}")
+    
+    default_config = config['DEFAULT']
+    if not default_config:
+        logging.critical("Configuration file must be provided with a DEFAULT section")
+        raise RuntimeError(f"A file with relevant values in DEFAULT section must be at {config_file}")
+    
+    thing_name = default_config['thing_name']
+    polling_interval = int(default_config['polling_interval'])
+    root_ca = default_config['ROOT_CA']
+    key = default_config['KEY']
+    cert = default_config['CERT']
+    endpoint = default_config['ENDPOINT']
+
+    # Client ID for MQTT connection
+    client_id = f"greenhouse-sensor-{str(uuid4())}-{thing_name}"
+
+    sensor_publisher = SensorPublisher(args.verbosity, endpoint, args.port, args.topic, args.control_topic, cert, key, root_ca, seconds_between=polling_interval, thing_name=thing_name)
     sensor_publisher.start_sensor()
 
     x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
