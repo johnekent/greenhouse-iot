@@ -13,23 +13,20 @@ async def test():
     print(f"Device before connect = {device}")
     await device.connect()
     print(f"Device Connected = {device}")
-    await device.fetch_state();
+    await device.fetch_state()
     print(f"Device after fetching state = {device}")
 
     print(device.battery_level)
 
-    device.zone1.is_watering = True;
-    await device.push_state();
-    print(f"Device After Zone 1 Watering Set = {device}")
-
     manual_minutes = 2
-    device.zone1.manual_watering_minutes = manual_minutes
-    device.zone2.manual_watering_minutes = manual_minutes
-    device.zone3.manual_watering_minutes = manual_minutes
-    device.zone4.manual_watering_minutes = manual_minutes
-    await device.push_state();
-    print(f"Device After Manual Minutes = {device}")
+    zones = [device.zone1, device.zone2, device.zone3, device.zone4]
+    for zone in zones:
+        zone.manual_watering_minutes = manual_minutes
+        zone.is_watering = True
 
+    await device.push_state()
+    await device.fetch_state()
+    print(f"Device After Zone Watering Set = {device}")
 
     start_seconds = time.time()
     to_sleep = 10
@@ -37,11 +34,11 @@ async def test():
     while remain > 0:
         remain -= to_sleep
         time.sleep(to_sleep)
-        await device.fetch_state();
+        await device.fetch_state()
         now = time.time()
         print(f"Device with {now - start_seconds} elapsed fetching state = {device}")
         print(f"Zone 1 Watering end time (aka seconds_left) minus now is {device.zone1.watering_end_time - now}")
 
-    await device.disconnect();
+    await device.disconnect()
 
 asyncio.run(test())
