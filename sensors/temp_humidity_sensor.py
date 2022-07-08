@@ -41,3 +41,7 @@ class TempHumiditySensor:
 
         logging.debug(f"TempHumiditySensor.read() returning {metrics}")
         return metrics
+
+if __name__ == "__main__":
+    sensor = TempHumiditySensor()
+    print(sensor.read())

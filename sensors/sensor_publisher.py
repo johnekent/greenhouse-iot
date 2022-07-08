@@ -224,15 +224,15 @@ class SensorPublisher:
         payload_json = json.loads(payload)
         command = payload_json['command']
         logging.info(f"Received control command {command}")
-        
+
         if command == 'stop_sensor':
             logging.info("---------------Receieved command to stop sensor")
             self.stop_sensor()
-        
+
         elif command == 'start_sensor':
             logging.info("---------------Receieved command to start sensor")
             self.start_sensor()
-        
+
         else:
             logging.info(f"Received unknown command {command}")
 

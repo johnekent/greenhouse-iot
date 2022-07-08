@@ -88,3 +88,7 @@ class WaterProbe:
 
         logging.debug(f"WaterProbe.read() returning {metrics}")
         return metrics
+
+if __name__ == "__main__":
+    sensor = WaterProbe()
+    print(sensor.read())

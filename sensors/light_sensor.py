@@ -34,3 +34,7 @@ class LightSensor:
 
         logging.debug(f"LightSensor.read() returning {metrics}")
         return metrics
+
+if __name__ == "__main__":
+    sensor = LightSensor()
+    print(sensor.read())

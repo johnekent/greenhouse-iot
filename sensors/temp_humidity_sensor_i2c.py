@@ -12,7 +12,6 @@ class TempHumiditySensorI2C:
 
     def __init__(self):
         """constructor
-       
         """
 
         # Create sensor object, communicating over the board's default I2C bus
