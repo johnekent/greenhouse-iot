@@ -79,7 +79,7 @@ class WaterActuator:
         device_zone.is_watering = True
         await device.push_state()
         await device.fetch_state()
-        print(f"Device After Zone Watering Set = {device}")
+        logging.info(f"Device After Zone Watering Set = {device}")
         await device.disconnect()
 
     async def check_battery(self):
@@ -97,23 +97,24 @@ class WaterActuator:
      
 
 if __name__ == "__main__":
-    print("B----Validating actuator constructor...")
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.info("B----Validating actuator constructor...")
     wa = WaterActuator()
-    print("E----Validated  actuator constructor...")
+    logging.info("E----Validated  actuator constructor...")
     
-    print("B-----------Checking water zone")
+    logging.info("B-----------Checking water zone")
     asyncio.run(wa.water_zone(zone=1, minutes=1))
-    print("E-----------Checked water zone")
+    logging.info("E-----------Checked water zone")
 
-    print("B-------Checking battery with return value")
+    logging.info("B-------Checking battery with return value")
     battery = asyncio.run(wa.check_battery())
-    print(f"Battery is {battery}")
-    print("E-------Checking battery with return value")
+    logging.info(f"Battery is {battery}")
+    logging.info("E-------Checking battery with return value")
 
-    print("B-----------------Rerunning validation after usage-----")
+    logging.info("B-----------------Rerunning validation after usage-----")
     asyncio.run(wa.validate_connection())
-    print("B-----------------Reran     validation after usage-----")
+    logging.info("B-----------------Reran     validation after usage-----")
     
-    print("B-----------Checking re-execute of water zone")
+    logging.info("B-----------Checking re-execute of water zone")
     asyncio.run(wa.water_zone(zone=3, minutes=1))
-    print("E-----------Completed re-check of water zone function")
+    logging.info("E-----------Completed re-check of water zone function")
