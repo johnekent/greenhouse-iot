@@ -9,7 +9,15 @@ from sensor import Sensor
 class LightSensor(Sensor):
     """ LightSensor class
     """
-    def __init__(self):
+    def __connect__(self):
+        """Implement the connection method
+
+        Raises:
+            RuntimeError: on any exception
+
+        Returns:
+            object: connection reference
+        """
 
         connection = None
 
@@ -44,5 +52,6 @@ class LightSensor(Sensor):
         return metrics
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     sensor = LightSensor()
     print(sensor.read())
