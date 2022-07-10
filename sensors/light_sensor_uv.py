@@ -9,7 +9,7 @@ import adafruit_ltr390
 
 from sensor import Sensor
 
-class LightSensorUV:
+class LightSensorUV(Sensor):
     """ LightSensorUV class
     """
     def __connect__(self):
