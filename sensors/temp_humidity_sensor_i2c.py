@@ -12,12 +12,16 @@ class TempHumiditySensorI2C(Sensor):
     """
 
     def __connect__(self):
+
+        connection = None
         # Create sensor object, communicating over the board's default I2C bus
         try:
             i2c = board.I2C()  # uses board.SCL and board.SDA
-            self.connection = adafruit_ahtx0.AHTx0(i2c)
+            connection = adafruit_ahtx0.AHTx0(i2c)
         except Exception as e:
             raise RuntimeError(f"Receieved exception {e} when creating connection") 
+
+        return connection
 
     def __read__(self):
         """Take readings from sensor
@@ -46,5 +50,6 @@ class TempHumiditySensorI2C(Sensor):
         return metrics
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     sensor = TempHumiditySensorI2C()
     print(sensor.read())

@@ -15,6 +15,7 @@ class Sensor(ABC):
         print(f"calling from {self}")
         try:
             self.connection = self.__connect__()
+            logging.debug(f"Created connection in {self}")
         except RuntimeError as rte:
             logging.error(f"Initiating {self} received error {rte}.  Will try again with each read.")
 
@@ -36,6 +37,7 @@ class Sensor(ABC):
         if not self.connection:
             try:
                 self.connection = self.__connect__()
+                logging.debug(f"Within read created connection in {self}")
             except RuntimeError as rte:
                 logging.error(f"Connecting on read in {self} received error {rte}.  Will try again with each read.")
         
@@ -43,6 +45,7 @@ class Sensor(ABC):
         if self.connection:
             try:
                 message = self.__read__()
+                logging.debug(f"Within read in {self} retrieved {message}")
             except RuntimeError as rte:
                 logging.error(f"Attempting read in {self} on connection {rte}.  Unsetting the connection.")
                 # if not successful, initiate a reconnect on the connection
