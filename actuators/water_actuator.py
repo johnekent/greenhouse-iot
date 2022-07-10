@@ -94,6 +94,7 @@ class WaterActuator:
         await device.disconnect()
 
         return battery    
+     
 
 if __name__ == "__main__":
     print("B----Validating actuator constructor...")
@@ -102,12 +103,16 @@ if __name__ == "__main__":
     
     print("B-----------Checking water zone")
     asyncio.run(wa.water_zone(zone=1, minutes=1))
-    print("e-----------Checked water zone")
+    print("E-----------Checked water zone")
 
     print("B-------Checking battery with return value")
     battery = asyncio.run(wa.check_battery())
-    print("battery is {battery}")
-    print("Ee-------Checking battery with return value")
+    print(f"Battery is {battery}")
+    print("E-------Checking battery with return value")
+
+    print("B-----------------Rerunning validation after usage-----")
+    asyncio.run(wa.validate_connection())
+    print("B-----------------Reran     validation after usage-----")
     
     print("B-----------Checking re-execute of water zone")
     asyncio.run(wa.water_zone(zone=3, minutes=1))
