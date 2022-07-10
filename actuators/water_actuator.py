@@ -21,7 +21,7 @@ class WaterActuator:
             # check and use this to instantiate to prevent calling methods on an inaccessible connection
             asyncio.run(self.validate_connection(self.address))
         except Exception as e:
-            logging.critical(f"Failed to successfully connect to device on address {self.address}")
+            logging.critical(f"Failed to successfully connect to device on address {self.address} with exception {e}")
 
     async def validate_connection(self):
         """Make sure the connection can be established and is good through a basic test.
@@ -75,8 +75,8 @@ class WaterActuator:
         await device.fetch_state()
         logging.info(f"Device before setting watering zone {zone} to minutes {minutes} = {device}")
 
-        zone.manual_watering_minutes = minutes
-        zone.is_watering = True
+        device_zone.manual_watering_minutes = minutes
+        device_zone.is_watering = True
         await device.push_state()
         await device.fetch_state()
         print(f"Device After Zone Watering Set = {device}")
