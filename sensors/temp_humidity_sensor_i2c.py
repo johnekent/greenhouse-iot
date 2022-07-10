@@ -13,7 +13,6 @@ class TempHumiditySensorI2C:
     def __init__(self):
         """constructor
         """
-
         # Create sensor object, communicating over the board's default I2C bus
         i2c = board.I2C()  # uses board.SCL and board.SDA
         self.sensor = adafruit_ahtx0.AHTx0(i2c)

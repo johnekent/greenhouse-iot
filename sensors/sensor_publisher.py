@@ -74,7 +74,15 @@ class SensorPublisher:
 
         self.mqtt_connection = self.create_connection(endpoint, port, cert, key, root_ca, client_id)
 
-        # If there is an exception on creating these then let it fail
+        # If there is an exception on creating these then let it fail...
+        #  ^^ ok revisit that
+        # Scenarios for failure:
+        #  1 - the sensor isn't on the device at all, so the init and the read will always fail
+        #  2 - the sensor is on the device and fails to init
+        #  3 - the sensor is on the device and init's but occasionally fails to read.
+        #  For scenario 1, make the sensors a configurable list with consistent contracts
+        #  For scenarios 2&3, build the init connection failure into the init logic, and then retry to connect (if still no conn) on each read
+        #     ^ that pattern is illustrated already in the WaterProbe.  Look at how to make that a consistent contract
         self.temp_humidity_sensor = TempHumiditySensor()
         self.temp_humidity_sensor_i2c = TempHumiditySensorI2C()
         self.light_sensor = LightSensor()
@@ -90,6 +98,7 @@ class SensorPublisher:
         volume_reading = random.uniform(0, 5)
 
         ### read sensor data
+        #TODO:  choose between internal (within read() catch and retry or retry here)
         th_metrics = self.temp_humidity_sensor.read()
         th_i2c_metrics = self.temp_humidity_sensor_i2c.read()
         light_metrics = self.light_sensor.read()
