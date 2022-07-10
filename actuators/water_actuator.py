@@ -19,7 +19,7 @@ class WaterActuator:
         await self.device.connect()   
         await self.device.fetch_state()
 
-    def zone_map(self, zone: int) -> device_zone:
+    def zone_map(self, zone: int):
         """_summary_
 
         Args:
