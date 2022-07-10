@@ -43,5 +43,6 @@ class TempHumiditySensor:
         return metrics
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     sensor = TempHumiditySensor()
     print(sensor.read())
