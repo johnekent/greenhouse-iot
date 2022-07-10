@@ -19,7 +19,7 @@ class WaterActuator:
         self.address = '58:93:D8:AC:81:26' # this is the melnor greenhouse address
         try:
             # check and use this to instantiate to prevent calling methods on an inaccessible connection
-            asyncio.run(self.validate_connection(self.address))
+            asyncio.run(self.validate_connection())
         except Exception as e:
             logging.critical(f"Failed to successfully connect to device on address {self.address} with exception {e}")
 
@@ -96,8 +96,19 @@ class WaterActuator:
         return battery    
 
 if __name__ == "__main__":
+    print("B----Validating actuator constructor...")
     wa = WaterActuator()
+    print("E----Validated  actuator constructor...")
+    
+    print("B-----------Checking water zone")
     asyncio.run(wa.water_zone(zone=1, minutes=1))
+    print("e-----------Checked water zone")
 
-    battery = asyncio.run(wa.check_battery)
+    print("B-------Checking battery with return value")
+    battery = asyncio.run(wa.check_battery())
     print("battery is {battery}")
+    print("Ee-------Checking battery with return value")
+    
+    print("B-----------Checking re-execute of water zone")
+    asyncio.run(wa.water_zone(zone=3, minutes=1))
+    print("E-----------Completed re-check of water zone function")
