@@ -5,26 +5,28 @@ An abstraction of a sensor.
 import logging
 import board
 import adafruit_ahtx0
+from sensor import Sensor
 
-class TempHumiditySensorI2C:
+class TempHumiditySensorI2C(Sensor):
     """ TempHumiditySensorI2C class.
     """
 
-    def __init__(self):
-        """constructor
-        """
+    def __connect__(self):
         # Create sensor object, communicating over the board's default I2C bus
-        i2c = board.I2C()  # uses board.SCL and board.SDA
-        self.sensor = adafruit_ahtx0.AHTx0(i2c)
+        try:
+            i2c = board.I2C()  # uses board.SCL and board.SDA
+            self.connection = adafruit_ahtx0.AHTx0(i2c)
+        except Exception as e:
+            raise RuntimeError(f"Receieved exception {e} when creating connection") 
 
-    def read(self):
+    def __read__(self):
         """Take readings from sensor
 
         Returns:
             dict: temp_celsius, temp_fahrenheit, humidity
         """
 
-        sensor = self.sensor
+        sensor = self.connection
 
         metrics = None
         temp_c = None
@@ -38,6 +40,7 @@ class TempHumiditySensorI2C:
 
         except RuntimeError as rte:
             logging.error(f"Received {rte} while obtaining temperature and humidity")
+            raise rte
 
         logging.debug(f"TempHumiditySensor.read() returning {metrics}")
         return metrics
