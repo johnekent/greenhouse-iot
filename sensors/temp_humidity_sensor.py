@@ -5,26 +5,36 @@ import logging
 import adafruit_dht
 import board
 
-class TempHumiditySensor:
+from sensor import Sensor
+
+class TempHumiditySensor(Sensor):
     """ TempHumiditySensor class.
     """
 
-    def __init__(self, input_pin=board.D17):
+    def __connect__(self):
         """constructor
 
         Args:
             board (board, optional): The input pin.  Defaults to board.17 (GPIO 17, Physical 11).
         """
-        self.dht_device = adafruit_dht.DHT22(input_pin, use_pulseio=False)
 
-    def read(self):
+        connection = None
+        try:
+            input_pin=board.D17  #TODO:  make this as a configuration parameter in the config.ini
+            connection = adafruit_dht.DHT22(input_pin, use_pulseio=False)
+        except Exception as e:
+            raise RuntimeError(f"Failed to connect to DHT22 on {input_pin} with exception {e}")
+
+        return connection
+
+    def __read__(self):
         """Take readings from sensor
 
         Returns:
             dict: temp_celsius, temp_fahrenheit, humidity
         """
 
-        device = self.dht_device
+        device = self.connection
 
         metrics = None
         temp_c = None
@@ -38,6 +48,7 @@ class TempHumiditySensor:
 
         except RuntimeError as rte:
             logging.error(f"Received {rte} while obtaining temperature and humidity")
+            raise rte  # let it float up
 
         logging.debug(f"TempHumiditySensor.read() returning {metrics}")
         return metrics
