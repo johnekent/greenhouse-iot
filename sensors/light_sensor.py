@@ -4,19 +4,29 @@ An abstraction of a light sensor.
 import logging
 import SI1145.SI1145 as SI1145_probe
 
-class LightSensor:
+from sensor import Sensor
+
+class LightSensor(Sensor):
     """ LightSensor class
     """
     def __init__(self):
-        self.sensor = SI1145_probe.SI1145()
 
-    def read(self):
+        connection = None
+
+        try:
+            connection = SI1145_probe.SI1145()
+        except Exception as e:
+            raise RuntimeError(f"On creation of SI1145 received error {e}")
+
+        return connection
+
+    def __read__(self):
         """Take readings from sensor
 
         Returns:
             dict: visible, IR, UV, UV_index
         """
-        sensor = self.sensor
+        sensor = self.connection
         metrics = None
 
         try:
@@ -27,10 +37,8 @@ class LightSensor:
 
             metrics = {"visible": visible_light, "IR": infra_red, "UV": ultra_violet, "UV_index": uv_index}
 
-        except RuntimeError as rte:
-            logging.error(f"The attempt to read the light sensor failed with {rte}")
-        except OSError as ose:
-            logging.error(f"The attempt to read the light sensor failed with {ose}")
+        except Exception as e:  # can be RuntimeError or OSError -- both take the same path
+            raise RuntimeError(f"The attempt to read the light sensor failed with {e}")
 
         logging.debug(f"LightSensor.read() returning {metrics}")
         return metrics
