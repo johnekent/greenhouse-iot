@@ -50,14 +50,17 @@ class WaterActuator:
             device_zone: The devices corresponding zone
         """
 
+
+        # was receiving error accessing "zone3" directly so converted to use this internal method __getitem__
+        #  AttributeError: 'Device' object has no attribute '_valve_count'
         if zone == 1:
-            return device.zone1
+            return device.__getitem__("zone1")
         elif zone == 2:
-            return device.zone2
+            return device.__getitem__("zone2")
         elif zone == 3:
-            return device.zone3
+            return device.__getitem__("zone3")
         elif zone == 4:
-            return device.zone4
+            return device.__getitem__("zone4")
         else:
             raise ValueError(f"The provided zone was {zone} but must be in range between 1 and 4 inclusive.")
 
