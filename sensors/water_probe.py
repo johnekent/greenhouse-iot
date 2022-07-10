@@ -7,25 +7,17 @@ import os
 import time
 from pathlib import Path
 
-class WaterProbe:
+from sensor import Sensor
+
+class WaterProbe(Sensor):
     """Class to represent a DS18b20 one wire probe for reading.
     Works well when connected to GPIO4 input.
-    Has internal retry within read() to connect if initial connection fails
     """
 
-    def __init__(self):
-        """Initializes and checks environment
+    def __connect__(self):
 
-        Raises RuntimeError if the device file is not found
-        """
+        connection = None
 
-        try:
-            self.connect_sensor()
-        except RuntimeError as rte:
-            logging.info(f"Failed to get connection in constructor.  Reads will retry.  Error: {rte}")
-
-
-    def connect_sensor(self):
         os.system('modprobe w1-gpio')
         os.system('modprobe w1-therm')
 
@@ -42,10 +34,14 @@ class WaterProbe:
 
         if Path(self.device_file).is_file():
             logging.info(f"The device file is {self.device_file}")
+            connection = self.device_file
         else:
             raise RuntimeError(f"Device file {self.device_file} is not a found file")
 
-    def read_temp_raw(self):
+
+        return connection
+
+    def read_temp_raw(self, connection):
         """Read the raw contents
 
         Returns:
@@ -53,26 +49,25 @@ class WaterProbe:
         """
         lines = []
 
-        if not self.device_file:  # if it's not been connected try to connect
-            try:
-                self.connect_sensor()
-            except RuntimeError as rte:
-                logging.info(f"Failed to get connection in read process.  Will continue to retry.  Error: {rte}")            
-        
-        if self.device_file:  # if we now or did have the file get the contents
-            with open(self.device_file, 'r', encoding='ascii') as file:
-                lines = file.readlines()
+        device_file = connection
+
+        try:
+            if device_file:  # if we now or did have the file get the contents
+                with open(device_file, 'r', encoding='ascii') as file:
+                    lines = file.readlines()
+        except Exception as e:
+            raise RuntimeError(f"Reading from the device file {device_file} resulted in this error {e}")
 
         return lines
 
-    def read(self):
+    def __read__(self):
         """Read the temperature values from the file
 
         Returns:
             dict:  {"temp_celsius": temp_c, "temp_fahrenheit": temp_f}
         """
         metrics = None
-        lines = self.read_temp_raw()
+        lines = self.read_temp_raw(self.connection)
 
         if lines:  # don't try to process empty content
             while lines[0].strip()[-3:] != 'YES':
@@ -90,5 +85,7 @@ class WaterProbe:
         return metrics
 
 if __name__ == "__main__":
+    
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     sensor = WaterProbe()
     print(sensor.read())

@@ -12,7 +12,6 @@ class Sensor(ABC):
     def __init__(self, *args, **kwargs):
         self.connection = None
 
-        print(f"calling from {self}")
         try:
             self.connection = self.__connect__()
             logging.debug(f"Created connection in {self}")
