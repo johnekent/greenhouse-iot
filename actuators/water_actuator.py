@@ -51,7 +51,7 @@ class WaterActuator:
         """
 
         # hackiness due to error:  'AttributeError: 'Device' object has no attribute '_valve_count''
-        device.__value_count = 4
+        device._valve_count = 4
 
         if zone == 1:
             return device.zone1

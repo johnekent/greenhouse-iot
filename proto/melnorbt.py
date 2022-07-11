@@ -38,6 +38,7 @@ async def test():
         now = time.time()
         print(f"Device with {now - start_seconds} elapsed fetching state = {device}")
         print(f"Zone 1 Watering end time (aka seconds_left) minus now is {device.zone1.watering_end_time - now}")
+        print(f"Zone 3 Watering end time (aka seconds_left) minus now is {device.zone3.watering_end_time - now}")
 
     await device.disconnect()
 
