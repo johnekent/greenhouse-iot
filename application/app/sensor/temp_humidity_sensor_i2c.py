@@ -5,7 +5,8 @@ An abstraction of a sensor.
 import logging
 import board
 import adafruit_ahtx0
-from sensor import Sensor
+
+from . sensor import Sensor
 
 class TempHumiditySensorI2C(Sensor):
     """ TempHumiditySensorI2C class.

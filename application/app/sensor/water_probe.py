@@ -7,7 +7,7 @@ import os
 import time
 from pathlib import Path
 
-from sensor import Sensor
+from . sensor import Sensor
 
 class WaterProbe(Sensor):
     """Class to represent a DS18b20 one wire probe for reading.

@@ -4,7 +4,7 @@ An abstraction of a light sensor.
 import logging
 import SI1145.SI1145 as SI1145_probe
 
-from sensor import Sensor
+from . sensor import Sensor
 
 class LightSensor(Sensor):
     """ LightSensor class

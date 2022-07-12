@@ -7,7 +7,7 @@ import board
 import busio
 import adafruit_ltr390
 
-from sensor import Sensor
+from . sensor import Sensor
 
 class LightSensorUV(Sensor):
     """ LightSensorUV class

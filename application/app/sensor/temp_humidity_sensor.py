@@ -5,7 +5,7 @@ import logging
 import adafruit_dht
 import board
 
-from sensor import Sensor
+from . sensor import Sensor
 
 class TempHumiditySensor(Sensor):
     """ TempHumiditySensor class.
