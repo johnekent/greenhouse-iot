@@ -1,6 +1,8 @@
 import pytest
 
-from sensor import Sensor
+from ..context import app
+
+from app.sensor import Sensor
 
 ## setup
 class MySensor(Sensor):
