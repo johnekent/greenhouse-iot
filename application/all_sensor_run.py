@@ -2,11 +2,12 @@
 Run through test of known sensors.
 """
 
-from temp_humidity_sensor import TempHumiditySensor
-from temp_humidity_sensor_i2c import TempHumiditySensorI2C
-from light_sensor import LightSensor
-from light_sensor_uv import LightSensorUV
-from water_probe import WaterProbe
+from app.sensor import TempHumiditySensor
+from app.sensor import TempHumiditySensorI2C
+from app.sensor import LightSensor
+from app.sensor import LightSensorUV
+from app.sensor import WaterProbe
+
 
 if __name__ == "__main__":
 

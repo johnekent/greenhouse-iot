@@ -15,8 +15,11 @@ from threading import Timer
 from awscrt import io, mqtt
 from awsiot import mqtt_connection_builder
 
-import app.sensors
-
+from app.sensor import TempHumiditySensor
+from app.sensor import TempHumiditySensorI2C
+from app.sensor import LightSensor
+from app.sensor import LightSensorUV
+from app.sensor import WaterProbe
 class RepeatTimer(Timer):
     """class RepeatTimer
 
