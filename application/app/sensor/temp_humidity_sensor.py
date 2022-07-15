@@ -11,7 +11,7 @@ class TempHumiditySensor(Sensor):
     """ TempHumiditySensor class.
     """
 
-    def __connect__(self):
+    def _connect(self):
         """constructor
 
         Args:
@@ -19,6 +19,7 @@ class TempHumiditySensor(Sensor):
         """
 
         connection = None
+        input_pin = None  # this is to fix the raise error which tries to print when not set.  see TODO below
         try:
             input_pin=board.D17  #TODO:  make this as a configuration parameter in the config.ini
             connection = adafruit_dht.DHT22(input_pin, use_pulseio=False)
@@ -27,7 +28,7 @@ class TempHumiditySensor(Sensor):
 
         return connection
 
-    def __read__(self):
+    def _read(self):
         """Take readings from sensor
 
         Returns:
@@ -52,6 +53,9 @@ class TempHumiditySensor(Sensor):
 
         logging.debug(f"TempHumiditySensor.read() returning {metrics}")
         return metrics
+
+    def _name(self):
+        return "temp_humidity_sensor"
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')

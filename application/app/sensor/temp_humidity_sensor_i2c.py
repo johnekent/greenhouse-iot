@@ -12,7 +12,7 @@ class TempHumiditySensorI2C(Sensor):
     """ TempHumiditySensorI2C class.
     """
 
-    def __connect__(self):
+    def _connect(self):
 
         connection = None
         # Create sensor object, communicating over the board's default I2C bus
@@ -24,7 +24,7 @@ class TempHumiditySensorI2C(Sensor):
 
         return connection
 
-    def __read__(self):
+    def _read(self):
         """Take readings from sensor
 
         Returns:
@@ -49,6 +49,9 @@ class TempHumiditySensorI2C(Sensor):
 
         logging.debug(f"TempHumiditySensor.read() returning {metrics}")
         return metrics
+
+    def _name(self):
+        return "temp_humidity_sensor_i2c"
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')

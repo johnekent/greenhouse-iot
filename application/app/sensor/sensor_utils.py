@@ -8,7 +8,7 @@ from . sensor import Sensor
 class SensorUtils:
 
     def instance_from_string(class_name: str):
-        """Given a string of the ClassName, locate it and 
+        """Given a string of the ClassName, locate it and create an instance
 
         Args:
             class_name (str): _description_

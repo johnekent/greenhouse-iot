@@ -19,4 +19,3 @@ def test_instance_from_string_invalid_class():
 
     with pytest.raises(ValueError):
         su.instance_from_string(name)
-

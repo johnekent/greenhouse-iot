@@ -50,8 +50,10 @@ if __name__ == '__main__':
         logging.critical("Configuration file must be provided with a DEFAULT section")
         raise RuntimeError(f"A file with relevant values in DEFAULT section must be at {config_file}")
     
+    # TODO:  add meaningful error handling around missing values -- can a description be placed in the file and read out here?
     thing_name = default_config['thing_name']
     polling_interval = int(default_config['polling_interval'])
+    active_sensors = default_config['active_sensors']
     root_ca = default_config['ROOT_CA']
     key = default_config['KEY']
     cert = default_config['CERT']
@@ -71,10 +73,11 @@ if __name__ == '__main__':
         root_ca=root_ca,
         client_id=client_id,
         seconds_between=polling_interval,
-        thing_name=thing_name)
+        thing_name=thing_name,
+        active_sensors=active_sensors)
 
     sensor_publisher.start_sensor()
 
-    x = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
-    x.start()
-    logging.info(f"Started control thread as {x}")
+    control_thread = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
+    control_thread.start()
+    logging.info(f"Started control thread as {control_thread}")

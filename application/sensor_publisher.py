@@ -4,7 +4,6 @@ SensorPublisher
 Take measurements and put to MQTT.
 Accepts messages from control MQTT.
 """
-
 from datetime import datetime
 import json
 import logging
@@ -15,11 +14,8 @@ from threading import Timer
 from awscrt import io, mqtt
 from awsiot import mqtt_connection_builder
 
-from app.sensor import TempHumiditySensor
-from app.sensor import TempHumiditySensorI2C
-from app.sensor import LightSensor
-from app.sensor import LightSensorUV
-from app.sensor import WaterProbe
+from app.sensor import SensorUtils as su
+
 class RepeatTimer(Timer):
     """class RepeatTimer
 
@@ -40,7 +36,7 @@ class SensorPublisher:
     """Handles the sensing and publishing
     """
 
-    def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, thing_name, seconds_between=10):
+    def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, thing_name, active_sensors, seconds_between=10):
         """_summary_
 
         Args:
@@ -67,47 +63,50 @@ class SensorPublisher:
         self.client_id = client_id
         self.thing_name = thing_name
         self.seconds_between = seconds_between
+        self.active_sensor_instances = SensorPublisher.load_sensors(active_sensors)
 
         io.init_logging(getattr(io.LogLevel, verbosity), 'stderr')
         logging.info(f"Initializing the measuring publisher.  Messages sent to topic {self.topic} and controls receieved from topic {self.control_topic}")
 
         self.mqtt_connection = self.create_connection(endpoint, port, cert, key, root_ca, client_id)
 
-        # If there is an exception on creating these then let it fail...
-        #  ^^ ok revisit that
-        # Scenarios for failure:
-        #  1 - the sensor isn't on the device at all, so the init and the read will always fail
-        #  2 - the sensor is on the device and fails to init
-        #  3 - the sensor is on the device and init's but occasionally fails to read.
-        #  For scenario 1, make the sensors a configurable list with consistent contracts
-        #  For scenarios 2&3, build the init connection failure into the init logic, and then retry to connect (if still no conn) on each read
-        #     ^ that pattern is illustrated already in the WaterProbe.  Look at how to make that a consistent contract
-        self.temp_humidity_sensor = TempHumiditySensor()
-        self.temp_humidity_sensor_i2c = TempHumiditySensorI2C()
-        self.light_sensor = LightSensor()
-        self.light_sensor_uv = LightSensorUV()
-        self.water_probe = WaterProbe()
+    @staticmethod
+    def load_sensors(sensors_csv: str):
+        """ Create list of instantiated sensor classes based on the comma separated string of sensors.
+
+        Args:
+            sensors_csv (str): comma-separated list of sensor class names.  e.g. "LightSensor,TempHumiditySensor"
+
+        Returns:
+            sensor_class_list (list): list of sensors
+        """
+        sensor_list = sensors_csv.split(",")
+        # remove any stray spaces
+        sensor_list = [ sensor.strip() for sensor in sensor_list ]
+        # remove any empty items - handles both stray commas and overall empty string
+        sensor_list = [ sensor for sensor in sensor_list if len(sensor) > 0 ] 
+        logging.info(f"The cleaned set of sensors is {sensor_list}")
+
+        sensor_class_list = [ su.instance_from_string(sensor) for sensor in sensor_list ]
+        return sensor_class_list
 
     def measure_environment(self):
         """Call all of the sensors to take measurements
 
         Returns:
-            dict: location, volume_gallons, temp_humidity (from temp_humidity_sensor), temp_humidity_i2c (from th_i2c_metrics) light (from light_sensor), light_uv (from light_sensor_uv),water (from water_probe), timestamp
+            dict: location, timestamp fields, volume_gallons, sensor_metrics (from list of sensors)
         """
         volume_reading = random.uniform(0, 5)
 
         ### read sensor data
-        #TODO:  choose between internal (within read() catch and retry or retry here)
-        th_metrics = self.temp_humidity_sensor.read()
-        th_i2c_metrics = self.temp_humidity_sensor_i2c.read()
-        light_metrics = self.light_sensor.read()
-        light_metrics_uv = self.light_sensor_uv.read()
-        water_metrics = self.water_probe.read()
+        sensor_metrics = { sensor._name() : sensor.read() for sensor in self.sensor_class_list }
 
         now = datetime.now()
-        timestamp = {"datetime": now.strftime("%c"), "day_of_year": now.strftime("%j"), "time": now.strftime("%H:%M:%S.%f")}
-
-        message = {"location": self.thing_name, "volume_gallons": volume_reading, "temp_humidity": th_metrics, "temp_humidity_i2c": th_i2c_metrics, "light": light_metrics, "light_uv": light_metrics_uv, "water": water_metrics, "timestamp": timestamp}
+        ## this is not a nested json because IoT analytics removes the quotes making it hard to separate dates which have formats that really benefit from spaces
+        datetime = now.strftime("%c")
+        day_of_year = now.strftime("%j")
+        time_of_day = now.strftime("%H:%M:%S.%f")
+        message = {"location": self.thing_name, "datetime": datetime, "day_of_year": day_of_year, "time_of_day": time_of_day, "volume_gallons": volume_reading, "sensor_metrics": sensor_metrics}
         return message
 
     def publish_metrics(self, mqtt_connection, topic, message):

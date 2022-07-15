@@ -14,7 +14,7 @@ class WaterProbe(Sensor):
     Works well when connected to GPIO4 input.
     """
 
-    def __connect__(self):
+    def _connect(self):
 
         connection = None
 
@@ -60,7 +60,7 @@ class WaterProbe(Sensor):
 
         return lines
 
-    def __read__(self):
+    def _read(self):
         """Read the temperature values from the file
 
         Returns:
@@ -83,6 +83,9 @@ class WaterProbe(Sensor):
 
         logging.debug(f"WaterProbe.read() returning {metrics}")
         return metrics
+
+    def _name(self):
+        return "water_probe"
 
 if __name__ == "__main__":
     
