@@ -86,8 +86,8 @@ class SensorPublisher:
         # remove any empty items - handles both stray commas and overall empty string
         sensor_list = [ sensor for sensor in sensor_list if len(sensor) > 0 ] 
         logging.info(f"The cleaned set of sensors is {sensor_list}")
-
         sensor_class_list = [ su.instance_from_string(sensor) for sensor in sensor_list ]
+        logging.info(f"Using a total of {len(sensor_class_list)} sensors = {sensor_class_list}")
         return sensor_class_list
 
     def measure_environment(self):
@@ -99,7 +99,7 @@ class SensorPublisher:
         volume_reading = random.uniform(0, 5)
 
         ### read sensor data
-        sensor_metrics = { sensor._name() : sensor.read() for sensor in self.sensor_class_list }
+        sensor_metrics = { sensor._name() : sensor.read() for sensor in self.active_sensor_instances }
 
         now = datetime.now()
         ## this is not a nested json because IoT analytics removes the quotes making it hard to separate dates which have formats that really benefit from spaces
