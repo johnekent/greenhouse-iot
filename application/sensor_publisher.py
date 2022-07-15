@@ -36,7 +36,7 @@ class SensorPublisher:
     """Handles the sensing and publishing
     """
 
-    def __init__(self, verbosity, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, thing_name, active_sensors, seconds_between=10):
+    def __init__(self, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, thing_name, active_sensors, seconds_between=10, verbosity=io.LogLevel.NoLogs.name):
         """_summary_
 
         Args:
@@ -103,10 +103,10 @@ class SensorPublisher:
 
         now = datetime.now()
         ## this is not a nested json because IoT analytics removes the quotes making it hard to separate dates which have formats that really benefit from spaces
-        datetime = now.strftime("%c")
+        day_and_time = now.strftime("%c")
         day_of_year = now.strftime("%j")
         time_of_day = now.strftime("%H:%M:%S.%f")
-        message = {"location": self.thing_name, "datetime": datetime, "day_of_year": day_of_year, "time_of_day": time_of_day, "volume_gallons": volume_reading, "sensor_metrics": sensor_metrics}
+        message = {"location": self.thing_name, "datetime": day_and_time, "day_of_year": day_of_year, "time_of_day": time_of_day, "volume_gallons": volume_reading, "sensor_metrics": sensor_metrics}
         return message
 
     def publish_metrics(self, mqtt_connection, topic, message):
