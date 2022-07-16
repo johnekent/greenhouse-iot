@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
+## this number is the "GPIO #" - e.g. physical 13, GPIO 27
 switch_pin = 27
 
 GPIO.setup(switch_pin, GPIO.IN, GPIO.PUD_UP)

@@ -5,3 +5,4 @@ adafruit-circuitpython-ltr390
 adafruit-circuitpython-ahtx0
 melnor-bluetooth
 SI1145
+RPi.GPIO

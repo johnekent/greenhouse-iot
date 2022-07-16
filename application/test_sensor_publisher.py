@@ -4,7 +4,7 @@ from tests import ignore_sensor_modules
 
 from sensor_publisher import SensorPublisher
 
-all_known_sensors = "TempHumiditySensor, TempHumiditySensorI2C, LightSensor, LightSensorUV, WaterProbe"
+all_known_sensors = "TempHumiditySensor, TempHumiditySensorI2C, LightSensor, LightSensorUV, WaterProbe"#, FloatSwitchSensor"
 
 def test_load_empty_sensors_list():
 

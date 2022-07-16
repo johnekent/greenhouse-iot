@@ -1,8 +1,8 @@
 """
 SensorPublisher
 
-Take measurements and put to MQTT.
-Accepts messages from control MQTT.
+Take measurements and put to MQTT.  This is the sensor behavior.
+Accepts messages from control MQTT.  This includes some actuator actions at current.
 """
 from datetime import datetime
 import json
