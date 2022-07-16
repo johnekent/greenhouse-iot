@@ -20,7 +20,7 @@ class TempHumiditySensorI2C(Sensor):
             i2c = board.I2C()  # uses board.SCL and board.SDA
             connection = adafruit_ahtx0.AHTx0(i2c)
         except Exception as e:
-            raise RuntimeError(f"Receieved exception {e} when creating connection") 
+            raise RuntimeError(f"Receieved exception {e} when creating connection")
 
         return connection
 

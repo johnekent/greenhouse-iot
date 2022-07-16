@@ -14,7 +14,7 @@ class MySensor(Sensor):
 
     def _name(self):
         return "my_sensor"
-        
+
 class MyConnection:
     pass
 

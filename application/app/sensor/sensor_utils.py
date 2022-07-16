@@ -29,5 +29,6 @@ class SensorUtils:
 
         if isinstance(instance, Sensor):
             return instance
-        else:  # this includes the None case or any other non-Sensor subclass
-            raise ValueError(f"The provided class name {class_name} was not identified as a type of {Sensor} in {source_module}")
+       
+        # this includes the None case or any other non-Sensor subclass
+        raise ValueError(f"The provided class name {class_name} was not identified as a type of {Sensor} in {source_module}")

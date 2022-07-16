@@ -18,7 +18,7 @@ class Sensor(ABC):
         except RuntimeError as rte:
             logging.error(f"Initiating {self} received error {rte}.  Will try again with each read.")
 
-        super(Sensor,self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def read(self):
         """Provide central logic of getting information from a physical device, as returned by _read()
@@ -39,7 +39,7 @@ class Sensor(ABC):
                 logging.debug(f"Within read created connection in {self}")
             except RuntimeError as rte:
                 logging.error(f"Connecting on read in {self} received error {rte}.  Will try again with each read.")
-        
+
         # if successful use it
         if self.connection:
             try:
@@ -61,19 +61,16 @@ class Sensor(ABC):
             json: the message from the sensor
         Raises:
             any exception that occurs in the form of a RuntimeError
-        """ 
-        pass
+        """
 
     @abstractmethod
     def _connect():
         """ Create a connection to the device from which to _read()
         If connection fails let the exception raise.
         Generate exceptions as RuntimeExceptions.
-        """ 
-        pass
+        """
 
     @abstractmethod
     def _name():
         """ An (ideally unique) name to identify the implemented sensor.
         """
-        pass

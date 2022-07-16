@@ -96,15 +96,15 @@ class WaterActuator:
         battery = device.battery_level
         await device.disconnect()
 
-        return battery    
-     
+        return battery
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     logging.info("B----Validating actuator constructor...")
     wa = WaterActuator()
     logging.info("E----Validated  actuator constructor...")
-    
+
     logging.info("B-----------Checking water zone")
     asyncio.run(wa.water_zone(zone=1, minutes=1))
     logging.info("E-----------Checked water zone")
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     logging.info("B-----------------Rerunning validation after usage-----")
     asyncio.run(wa.validate_connection())
     logging.info("B-----------------Reran     validation after usage-----")
-    
+
     logging.info("B-----------Checking re-execute of water zone")
     asyncio.run(wa.water_zone(zone=3, minutes=1))
     logging.info("E-----------Completed re-check of water zone function")

@@ -1,8 +1,13 @@
 """float_switch_sensor
 """
+from ast import Import
 import logging
 
-import RPi.GPIO as GPIO
+## this is realated to the TODO in the ignore_sensor_modules.py testing script.  Please direct your attention elsewhere.
+try:
+    from RPi import GPIO as GPIO
+except ImportError as ie:
+    logging.warning(f"The import of RPi.GPIO failed.  This may not work properly.  Try to install it.")
     
 from . sensor import Sensor
 
@@ -14,14 +19,14 @@ class FloatSwitchSensor(Sensor):
     def _connect(self):
 
         connection = None
-
-        GPIO.setwarnings(False)
-
-        ## this number is the "GPIO #" - e.g. physical 13, GPIO 27
-        GPIO.setmode(GPIO.BCM)
         self.switch_pin = 27
-
+        
         try:
+            GPIO.setwarnings(False)
+
+            ## this number is the "GPIO #" - e.g. physical 13 = GPIO 27
+            GPIO.setmode(GPIO.BCM)
+                
             GPIO.setup(self.switch_pin, GPIO.IN, GPIO.PUD_UP)
             # set connection to a non-None value - the GPIO channel (~pin) setup above doesn't return a handle.
             # however the Sensor retry / error handling logic works based on the existence of a connection
