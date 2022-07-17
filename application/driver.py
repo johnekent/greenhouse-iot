@@ -12,6 +12,7 @@ import threading
 from uuid import uuid4
 
 from awscrt import io
+from application.actuator_processor import ActuatorProcessor
 
 from sensor_publisher import SensorPublisher
 
@@ -85,8 +86,10 @@ if __name__ == '__main__':
 
     ## Note:  This is currently setup to run on the same device (sensor and actuator).
     # However, it could be split out to separate devices which would require a change to driver.
-    #control_thread = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
-    #control_thread.start()
-    #logging.info(f"Started control thread as {control_thread}")    
+
+    actuator_processor = ActuatorProcessor(water_actuator_address=melnor_mac)
     control_topic=args.control_topic
-    melnor_mac=melnor_mac
+
+    control_thread = threading.Thread(target=mqtt_connection.subscribe_to_messages, args=[], kwargs={'subscribe_topic': control_topic, 'callback': actuator_processor.on_message_received} daemon=True)
+    control_thread.start()
+    logging.info(f"Started control thread as {control_thread}")

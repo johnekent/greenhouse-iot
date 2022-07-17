@@ -144,6 +144,7 @@ if __name__ == "__main__":
         address = sys.argv[1]
     else:
         logging.error("Please enter the bluetooth device address as an argument.")
+        exit
     
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     logging.info("B----Validating actuator constructor...")
@@ -151,8 +152,8 @@ if __name__ == "__main__":
     logging.info("E----Validated  actuator constructor...")
 
     logging.info("B-----------Checking water zone")
-    asyncio.run(wa.water_zone(zone=1, minutes=1))
-    logging.info("E-----------Checked water zone")
+    status = asyncio.run(wa.water_zone(zone=1, minutes=1))
+    logging.info("E-----------Checked water zone and got status of {status}")
 
     logging.info("B-------Checking battery with return value")
     battery = asyncio.run(wa.check_battery())
@@ -164,5 +165,5 @@ if __name__ == "__main__":
     logging.info("B-----------------Reran     validation after usage-----")
 
     logging.info("B-----------Checking re-execute of water zone")
-    asyncio.run(wa.water_zone(zone=3, minutes=1))
-    logging.info("E-----------Completed re-check of water zone function")
+    status = asyncio.run(wa.water_zone(zone=3, minutes=1))
+    logging.info("E-----------Completed re-check of water zone function with status = {status}")

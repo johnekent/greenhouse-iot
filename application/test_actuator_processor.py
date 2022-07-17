@@ -6,4 +6,4 @@ from actuator_processor import ActuatorProcessor
 
 def test_instantiate():
 
-    a_p = ActuatorProcessor()
+    a_p = ActuatorProcessor(water_actuator_address=None)
