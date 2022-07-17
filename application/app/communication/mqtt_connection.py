@@ -96,17 +96,14 @@ class MQTTConnection:
             key (_type_): _description_
             root_ca (_type_): _description_
             client_id (_type_): _description_
-
-        Returns:
-            _type_: _description_
         """
 
         if self.mqtt_connection:
-            logging.warning(f"Create connection was called but an existing connection already exists.  Returning existing connection.")
-            return self.mqtt_connection
+            logging.warning(f"Create connection was called but an existing connection already exists.  Retaining existing connection.")
+            return
 
         # Spin up resources
-        event_loop_group = io.EventLoopGroup(1)
+        event_loop_group = io.EventLoopGroup(num_threads=1)
         host_resolver = io.DefaultHostResolver(event_loop_group)
         client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
 
@@ -132,8 +129,31 @@ class MQTTConnection:
         logging.info(f"Connected with result {result}!")
 
         self.mqtt_connection = mqtt_connection
-        return self.mqtt_connection
         
+
+    def publish_message(self, topic, message):
+        """Write message to topic using connection
+
+        Args:
+            mqtt_connection (_type_): _description_
+            topic (_type_): _description_
+            message (_type_): _description_
+
+        Raises:
+            ValueError: _description_
+        """
+
+        if not self.mqtt_connection:
+            self.create_connection()
+
+        if not isinstance(message, str):
+            raise ValueError(f"Expected string argument for message but got {type(message)}")
+
+        #TODO:  add error handling and resiliency for loss of network connection to publish
+        result = self.mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
+        logging.info(f"Published message {message} to topic {topic} with result {result}")
+
+
     def subscribe_to_messages(self, subscribe_topic, callback):
         """Subscribe to control messages and set the callback (on_message_received)
         """

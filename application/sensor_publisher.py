@@ -94,31 +94,12 @@ class SensorPublisher:
         message = {"location": self.thing_name, "datetime": day_and_time, "day_of_year": day_of_year, "time_of_day": time_of_day, "volume_gallons": volume_reading, "sensor_metrics": sensor_metrics}
         return message
 
-    def publish_metrics(self, mqtt_connection, topic, message):
-        """Write message to topic using connection
-
-        Args:
-            mqtt_connection (_type_): _description_
-            topic (_type_): _description_
-            message (_type_): _description_
-
-        Raises:
-            ValueError: _description_
-        """
-
-        if not isinstance(message, str):
-            raise ValueError(f"Expected string argument for message but got {type(message)}")
-
-        #TODO:  add error handling and resiliency for loss of network connection to publish
-        result = mqtt_connection.publish(topic=topic, payload=message, qos=mqtt.QoS.AT_LEAST_ONCE)
-        logging.info(f"Published message {message} to topic {topic} with result {result}")
-
     def send_measurement(self):
         """A method that takes and publishes metrics.
         This is the single method invoked by the RepeatTimer
         """
         message = self.measure_environment()
-        self.publish_metrics(self.mqtt_connection, self.topic, json.dumps(message))
+        self.mqtt_connection.publish_message(self.topic, json.dumps(message))
 
     ### Timer and Topic Configuration
     def start_sensor(self):
@@ -134,4 +115,3 @@ class SensorPublisher:
         """
         logging.info("Stopping sensor timer")
         self.reading_timer.cancel()
-
