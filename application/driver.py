@@ -90,6 +90,6 @@ if __name__ == '__main__':
     actuator_processor = ActuatorProcessor(water_actuator_address=melnor_mac)
     control_topic=args.control_topic
 
-    control_thread = threading.Thread(target=mqtt_connection.subscribe_to_messages, args=[], kwargs={'subscribe_topic': control_topic, 'callback': actuator_processor.on_message_received} daemon=True)
+    control_thread = threading.Thread(target=mqtt_connection.subscribe_to_messages, args=[], kwargs={'subscribe_topic': control_topic, 'callback': actuator_processor.on_message_received}, daemon=True)
     control_thread.start()
     logging.info(f"Started control thread as {control_thread}")
