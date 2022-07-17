@@ -8,6 +8,10 @@ import logging
 from abc import ABC, abstractmethod
 
 class Sensor(ABC):
+    """ Abstract Base Class for Sensor.
+    Delegates internal connect and read logic to the sub-classes,
+    while centrally controlling the retry behavior ahd ensuring a consistent interface for Sensors.
+    """
 
     def __init__(self, *args, **kwargs):
         self.connection = None

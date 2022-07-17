@@ -50,7 +50,7 @@ class FloatSwitchSensor(Sensor):
             float_switch_state = "HIGH" if GPIO.input(self.switch_pin) == GPIO.HIGH else "LOW"
             metrics = {"float_switch_state": float_switch_state}
         except Exception as e:
-            raise RuntimeError(f"Failed to get the input button state with exception {e}")
+            raise RuntimeError(f"Failed to get the float switch state with exception {e}")
             
         logging.debug(f"FloatSwitchSensor.read() returning {metrics}")
         return metrics

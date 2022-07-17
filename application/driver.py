@@ -12,8 +12,11 @@ import threading
 from uuid import uuid4
 
 from awscrt import io
+from application.app.communication import mqtt_connection
 
 from sensor_publisher import SensorPublisher
+
+from app.communication import MQTTConnection
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -61,9 +64,7 @@ if __name__ == '__main__':
 
     # Client ID for MQTT connection
     client_id = f"greenhouse-sensor-{str(uuid4())}-{thing_name}"
-
-    sensor_publisher = SensorPublisher(
-        verbosity=args.verbosity,
+    mqtt_connection_service = MQTTConnection(
         endpoint=endpoint,
         port=args.port,
         topic=args.topic,
@@ -72,12 +73,20 @@ if __name__ == '__main__':
         key=key,
         root_ca=root_ca,
         client_id=client_id,
+        verbosity=args.verbosity)
+
+    mqtt_connection = mqtt_connection_service.create_connection()
+
+    sensor_publisher = SensorPublisher(
+        mqtt_connection = mqtt_connection,
         seconds_between=polling_interval,
         thing_name=thing_name,
         active_sensors=active_sensors)
 
     sensor_publisher.start_sensor()
 
-    control_thread = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
-    control_thread.start()
-    logging.info(f"Started control thread as {control_thread}")
+
+    ## TODO:  Replace this with a separate driver call into the actuator
+    #control_thread = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
+    #control_thread.start()
+    #logging.info(f"Started control thread as {control_thread}")    
