@@ -11,14 +11,12 @@ class MQTTConnection:
     """Class MQTTConnection.  Contains the connection and lifecycle of MQTT connection for topic send and receive.
     """
     
-    def __init__(self, endpoint, port, topic, control_topic, cert, key, root_ca, client_id, verbosity=io.LogLevel.NoLogs.name):
+    def __init__(self, endpoint, port, cert, key, root_ca, client_id, verbosity=io.LogLevel.NoLogs.name):
         """ Create the class but do not make any connections
 
         Args:
             endpoint (_type_): MQTT connection endpoint
             port (_type_): MQTT connection port
-            topic (_type_): Publish measurement messages to this topic
-            control_topic (_type_): Receive control messages from this topic
             cert (_type_): _description_
             key (_type_): _description_
             root_ca (_type_): _description_
@@ -27,8 +25,6 @@ class MQTTConnection:
 
         self.endpoint = endpoint
         self.port = port
-        self.topic = topic
-        self.control_topic = control_topic
         self.cert = cert
         self.key = key
         self.root_ca = root_ca

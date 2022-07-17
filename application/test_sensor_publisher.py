@@ -19,7 +19,6 @@ def test_load_sensors_list_spaces_ok():
 
     assert len(sensors) == len(all_known_sensors.split())
 
-
 def test_load_sensors_mix_of_bad_and_good_throws_exception():
 
     with pytest.raises(ValueError):
@@ -36,9 +35,9 @@ def test_measure_environment(monkeypatch):
         return None
 
     # don't try to make a connection as it will not work
-    monkeypatch.setattr(SensorPublisher, "create_connection", mock_create_connection)
+    # monkeypatch.setattr(SensorPublisher, "create_connection", mock_create_connection)  <-- moved out of this class
     
-    sp = SensorPublisher(endpoint=None, port=None, topic=None, control_topic=None, cert=None, key=None, root_ca=None, client_id=None, thing_name=None, active_sensors="")
+    sp = SensorPublisher(mqtt_connection=None, topic=None, thing_name=None, active_sensors="")
 
     message = sp.measure_environment()
     assert isinstance(message, dict)
