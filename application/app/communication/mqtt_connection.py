@@ -168,4 +168,4 @@ class MQTTConnection:
             callback=callback)
 
         subscribe_result = subscribe_future.result()
-        logging.info(f"Subscribed with {subscribe_result['qos']}")
+        logging.info(f"Subscribed with {subscribe_result['qos']} to {subscribe_topic} using callback {str(callback)}")
