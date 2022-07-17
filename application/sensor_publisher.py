@@ -2,7 +2,7 @@
 SensorPublisher
 
 Take measurements and put to MQTT.  This is the sensor behavior.
-Accepts messages from control MQTT.  This includes some actuator actions at current.
+
 """
 from datetime import datetime
 import json
@@ -32,11 +32,12 @@ class SensorPublisher:
     """Handles the sensing and publishing
     """
 
-    def __init__(self, mqtt_connection, thing_name, active_sensors, seconds_between=10):
+    def __init__(self, mqtt_connection, topic, thing_name, active_sensors, seconds_between=10):
         """_summary_
 
         Args:
             mqtt_connection (AWS mqtt_connection): a connected connection
+            topic (str): publish messages to this MQTT topic
             verbosity (_type_): _description_
             thing_name (str): name of the device
             seconds_between (int, optional): Time between measurements.  Defaults to 10.
@@ -46,9 +47,10 @@ class SensorPublisher:
         self.seconds_between = seconds_between
         self.active_sensor_instances = SensorPublisher.load_sensors(active_sensors)
 
-        logging.info(f"Initializing the measuring publisher.  Messages sent to topic {self.topic} and controls receieved from topic {self.control_topic}")
-
         self.mqtt_connection = mqtt_connection
+        self.topic = topic
+        logging.info(f"Initializing the measuring publisher.  Messages sent to topic {self.topic}.")
+
 
     @staticmethod
     def load_sensors(sensors_csv: str):

@@ -67,8 +67,6 @@ if __name__ == '__main__':
     mqtt_connection_service = MQTTConnection(
         endpoint=endpoint,
         port=args.port,
-        topic=args.topic,
-        control_topic=args.control_topic,
         cert=cert,
         key=key,
         root_ca=root_ca,
@@ -79,14 +77,15 @@ if __name__ == '__main__':
 
     sensor_publisher = SensorPublisher(
         mqtt_connection = mqtt_connection,
+        topic = args.topic,
         seconds_between=polling_interval,
         thing_name=thing_name,
         active_sensors=active_sensors)
 
     sensor_publisher.start_sensor()
 
-
     ## TODO:  Replace this with a separate driver call into the actuator
     #control_thread = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
     #control_thread.start()
     #logging.info(f"Started control thread as {control_thread}")    
+    control_topic=args.control_topic
