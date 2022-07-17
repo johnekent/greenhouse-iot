@@ -128,8 +128,7 @@ class MQTTConnection:
         result = connect_future.result()
         logging.info(f"Connected with result {result}!")
 
-        self.mqtt_connection = mqtt_connection
-        
+        self.mqtt_connection = mqtt_connection        
 
     def publish_message(self, topic, message):
         """Write message to topic using connection

@@ -1,8 +1,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0.
-""" driver.py
 
-Creates sensor and attaches to control plane
+### This is not yet used or refactored -- primarily for testing at current.
+""" subscriber.py
+
+Manages actuator
 """
 
 import argparse

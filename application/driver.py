@@ -9,6 +9,7 @@ import argparse
 import configparser
 import logging
 import threading
+import asyncio
 from uuid import uuid4
 
 from awscrt import io
@@ -89,6 +90,21 @@ if __name__ == '__main__':
     actuator_processor = ActuatorProcessor(water_actuator_address=melnor_mac)
     control_topic=args.control_topic
 
-    control_thread = threading.Thread(target=mqtt_connection.subscribe_to_messages, args=[], kwargs={'subscribe_topic': control_topic, 'callback': actuator_processor.on_message_received}, daemon=True)
-    control_thread.start()
-    logging.info(f"Started control thread as {control_thread}")
+    #control_thread = threading.Thread(target=mqtt_connection.subscribe_to_messages, args=[], kwargs={'subscribe_topic': control_topic, 'callback': actuator_processor.on_message_received}, daemon=True)
+    #control_thread.start()
+    #logging.info(f"Started control thread as {control_thread}")
+
+    mqtt_connection.subscribe_to_messages(subscribe_topic=control_topic, callback=actuator_processor.on_message_received)
+    logging.info(f"Registered subscription to {control_topic} for callback {actuator_processor.on_message_received}")
+
+    # don't exit
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_forever()
+    except KeyboardInterrupt as ki:
+        pass
+    finally:
+        logging.info(f"The control loop is now closing due to receiving {ki}")
+        loop.close()
+
+    print("Finished")
