@@ -61,6 +61,8 @@ if __name__ == '__main__':
     cert = default_config['CERT']
     endpoint = default_config['ENDPOINT']
 
+    melnor_mac = default_config['MELNOR_MAC']
+
     # Client ID for MQTT connection
     client_id = f"greenhouse-sensor-{str(uuid4())}-{thing_name}"
     mqtt_connection = MQTTConnection(
@@ -81,8 +83,10 @@ if __name__ == '__main__':
 
     sensor_publisher.start_sensor()
 
-    ## TODO:  Replace this with a separate driver call into the actuator
+    ## Note:  This is currently setup to run on the same device (sensor and actuator).
+    # However, it could be split out to separate devices which would require a change to driver.
     #control_thread = threading.Thread(target=sensor_publisher.subscribe_control_messages, daemon=True)
     #control_thread.start()
     #logging.info(f"Started control thread as {control_thread}")    
     control_topic=args.control_topic
+    melnor_mac=melnor_mac

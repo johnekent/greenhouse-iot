@@ -9,3 +9,4 @@ from app.communication import MQTTConnection
 
 def test_create():
     connection = MQTTConnection(endpoint=None, port=None, cert=None, key=None, root_ca=None, client_id=None)
+
