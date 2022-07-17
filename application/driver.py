@@ -12,8 +12,7 @@ import threading
 from uuid import uuid4
 
 from awscrt import io
-from application.actuator_processor import ActuatorProcessor
-
+from actuator_processor import ActuatorProcessor
 from sensor_publisher import SensorPublisher
 
 from app.communication import MQTTConnection
