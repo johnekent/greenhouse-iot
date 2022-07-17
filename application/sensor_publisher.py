@@ -10,6 +10,9 @@ import logging
 import random
 from threading import Timer
 
+#TODO:  move this dependency into the MQTT class and refactor
+from awscrt import mqtt
+
 from app.sensor import SensorUtils as su
 
 class RepeatTimer(Timer):
