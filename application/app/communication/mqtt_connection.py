@@ -157,6 +157,10 @@ class MQTTConnection:
     def subscribe_to_messages(self, subscribe_topic, callback):
         """Subscribe to control messages and set the callback (on_message_received)
         """
+
+        if not self.mqtt_connection:
+            self.create_connection()
+
         logging.info(f"Subscribing to topic {subscribe_topic}")
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
             topic=subscribe_topic,
