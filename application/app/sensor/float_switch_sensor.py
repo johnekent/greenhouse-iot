@@ -31,10 +31,11 @@ class FloatSwitchSensor(Sensor):
             # set connection to a non-None value - the GPIO channel (~pin) setup above doesn't return a handle.
             # however the Sensor retry / error handling logic works based on the existence of a connection
             # in this case there is no connection but this will give it a value
-            connection = ()
+            connection = True
         except Exception as e:
             raise RuntimeError(f"Failed to setup GPIO for pin {self.switch_pin} with exception {e}")
 
+        logging.debug(f"FloatSwitchSensor created connection={connection} on pin {self.switch_pin}")
         return connection
 
 
@@ -45,10 +46,12 @@ class FloatSwitchSensor(Sensor):
             dict:  { "float_switch": [HIGH (floating up) | LOW (water level low; not floating)] }
         """
         metrics = None
+        logging.debug(f"FloatSwitchSensor._read() initiating")
 
         try:
             float_switch_state = "HIGH" if GPIO.input(self.switch_pin) == GPIO.HIGH else "LOW"
             metrics = {"float_switch_state": float_switch_state}
+            logging.debug(f"Got metrics {float_switch_state} from the float switch")
         except Exception as e:
             raise RuntimeError(f"Failed to get the float switch state with exception {e}")
             
