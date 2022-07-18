@@ -109,16 +109,9 @@ if __name__ == '__main__':
         logging.info(f"The control loop is now closing due to receiving {ki}")
         loop.close()
     """
-
-    """This doesn't work since running in nohup background
-    stop_command = "STOP"
-    while True:
-        command = input(f"Enter {stop_command} to stop:   ")
-        if command == stop_command:
-            break
-    """
     
-    # this is just too brute force
+    # this is just too brute force but the above gives an MQTT connection error more frequently
+    # --- presumably due to conflict with asyncio
     try:
         while True:
             pass
