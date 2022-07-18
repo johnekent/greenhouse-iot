@@ -3,10 +3,12 @@
 
 import argparse
 import configparser
-from errno import WSAEDQUOT
 import logging
 import threading
 from uuid import uuid4
+
+import random
+import time
 
 from awscrt import io
 
@@ -64,22 +66,24 @@ if __name__ == '__main__':
         verbosity=args.verbosity)
 
     base_message = {"location": "pi_zero_2_w", "volume_gallons": 1.272841624348457, "sensor_metrics": {"float_switch": {"float_switch_state": None}}}
-    state = base_message['sensor_metrics']['float_switch']['float_switch_state']
 
-    import random
 
     def subscriber_callback(client, userdata, message):
-        print("Received a new message: ")
-        print(message.payload)
-        print("from topic: ")
-        print(message.topic)
-        print("--------------\n\n")
+        print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<< Received a new message: {message.payload} from {message.topic}")
 
-    mqtt_connection.subscribe_to_messages(subscribe_topic='greenhouse/command', callback=subscriber_callback)
+    topic = 'greenhouse/control'
+    #mqtt_connection.subscribe_to_messages(subscribe_topic=topic, callback=subscriber_callback)
+
+    mqtt_connection.create_connection()
+    client = mqtt_connection.mqtt_connection
+    print(f"Client connection is {client}")
+    client.subscribe(topic, 1, subscriber_callback)
 
     for i in range(0, 100):
 
         rand = random.randint(0, 10)
 
         state = "HIGH" if rand == 3 else "LOW"
+        base_message['sensor_metrics']['float_switch']['float_switch_state'] = state
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>> {i}:  Publishing message {base_message}")
+        time.sleep(1)
