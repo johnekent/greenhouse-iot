@@ -97,9 +97,9 @@ if __name__ == '__main__':
     mqtt_connection.subscribe_to_messages(subscribe_topic=control_topic, callback=actuator_processor.on_message_received)
     logging.info(f"Registered subscription to {control_topic} for callback {actuator_processor.on_message_received}")
 
-    """
+    
     # don't exit 
-    # does using asyncio threading since it may be interfering with the watering asyncio threads
+    # does using asyncio threading interfere with the watering asyncio threads
     try:
         loop = asyncio.get_event_loop()
         loop.run_forever()
@@ -108,12 +108,17 @@ if __name__ == '__main__':
     finally:
         logging.info(f"The control loop is now closing due to receiving {ki}")
         loop.close()
-    """
+  
     
     # this is just too brute force but the above gives an MQTT connection error more frequently
     # --- presumably due to conflict with asyncio
+    ### Well it actually gets the same error.
+    # The error is: Connection interrupted. error: AWS_ERROR_MQTT_UNEXPECTED_HANGUP: The connection was closed unexpectedly.
+    #
+    """
     try:
         while True:
             pass
     except KeyboardInterrupt:
         print("Finished")
+    """

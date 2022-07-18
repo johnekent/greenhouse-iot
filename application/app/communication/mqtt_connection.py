@@ -51,7 +51,7 @@ class MQTTConnection:
             connection (_type_): MQTT connection
             error (_type_): The error from the disconnect
         """
-        logging.error(f"Connection interrupted. error: {error}")
+        logging.error(f"Received connection ({connection}) interrupted error: {error}.")
 
     @staticmethod
     def on_resubscribe_complete(resubscribe_future):
