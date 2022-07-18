@@ -98,13 +98,15 @@ class WaterActuator:
             minutes (int): Duration of watering
         """
 
+        logging.info(f"Connecting to device address {self.address} to water zone {zone}.")
         device = Device(mac=self.address)
         await device.connect()
         await device.fetch_state()
+
         device_zone = WaterActuator.zone_map(device, zone)  #aka valve
+        logging.info(f"The device zone valve {device_zone} will be used for any watering requests.")
 
         device_status = WaterActuator.get_device_status(device)
-
         logging.info(f"The device status in water request is {device_status}")
 
         if not WaterActuator.is_watering(device_zone):
@@ -146,7 +148,7 @@ if __name__ == "__main__":
         address = sys.argv[1]
     else:
         logging.error("Please enter the bluetooth device address as an argument.")
-        exit
+        exit()
     
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
     logging.info("B----Validating actuator constructor...")

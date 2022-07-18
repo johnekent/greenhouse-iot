@@ -8,7 +8,7 @@ Creates sensor and attaches to control plane
 import argparse
 import configparser
 import logging
-import threading
+#import threading
 import asyncio
 from uuid import uuid4
 
