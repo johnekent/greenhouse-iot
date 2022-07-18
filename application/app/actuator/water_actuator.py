@@ -105,6 +105,8 @@ class WaterActuator:
 
         device_status = WaterActuator.get_device_status(device)
 
+        logging.info(f"The device status in water request is {device_status}")
+
         if not WaterActuator.is_watering(device_zone):
             device_zone.manual_watering_minutes = minutes
             device_zone.is_watering = True

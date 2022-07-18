@@ -34,7 +34,7 @@ parser.add_argument('--verbosity', choices=[x.name for x in io.LogLevel], defaul
 # Using globals to simplify sample code
 args = parser.parse_args()
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 io.init_logging(getattr(io.LogLevel, args.verbosity), 'stderr')
 
