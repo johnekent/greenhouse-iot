@@ -27,7 +27,7 @@ class WaterActuator:
             validate_connection (bool, optional): _description_. Defaults to False.
         """
         if not WaterActuator.is_valid_address(address):
-            raise ValueError(f"The address must be of valid mac address format (e.g. 38:23:C8:A1:21:36) without any preceding or training quotes or other characters.  However, it was --> {address} <--")
+            logging.critical(f"The address must be of valid mac address format (e.g. 38:23:C8:A1:21:36) without any preceding or training quotes or other characters.  However, it was --> {address} <--")
         self.address = address
 
         if validate_connection:
