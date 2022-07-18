@@ -6,6 +6,7 @@ import configparser
 import logging
 import threading
 from uuid import uuid4
+import json
 
 import random
 import time
@@ -65,25 +66,34 @@ if __name__ == '__main__':
         client_id=client_id,
         verbosity=args.verbosity)
 
-    base_message = {"location": "pi_zero_2_w", "volume_gallons": 1.272841624348457, "sensor_metrics": {"float_switch": {"float_switch_state": None}}}
+    base_message = {"location": "e2e_test", "volume_gallons": 1.272841624348457, "sensor_metrics": {"float_switch": {"float_switch_state": None}}}
 
 
-    def subscriber_callback(client, userdata, message):
-        print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<< Received a new message: {message.payload} from {message.topic}")
+    def subscriber_callback(topic, payload, *args, **kwargs):
+        #print(f"args {args} kwargs {kwargs}")
+        print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<< Received a new message: {payload} from {topic}")
 
-    topic = 'greenhouse/control'
-    #mqtt_connection.subscribe_to_messages(subscribe_topic=topic, callback=subscriber_callback)
+    publish_topic = 'greenhouse/metrics'
+    subscribe_topic = 'greenhouse/control'
 
-    mqtt_connection.create_connection()
-    client = mqtt_connection.mqtt_connection
-    print(f"Client connection is {client}")
-    client.subscribe(topic, 1, subscriber_callback)
+    #print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Overriding")
+    #subscribe_topic = publish_topic
 
-    for i in range(0, 100):
+    mqtt_connection.subscribe_to_messages(subscribe_topic=subscribe_topic, callback=subscriber_callback)
+
+    #mqtt_connection.create_connection()
+    #client = mqtt_connection.mqtt_connection
+    #print(f"Client connection is {client}")
+    #client.subscribe(topic, 1, subscriber_callback)
+
+    for i in range(0, 10):
 
         rand = random.randint(0, 10)
 
-        state = "HIGH" if rand == 3 else "LOW"
+        state = "HIGH" if rand < 3 else "LOW"
+
+        print(f"state is {state}")
         base_message['sensor_metrics']['float_switch']['float_switch_state'] = state
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>> {i}:  Publishing message {base_message}")
-        time.sleep(1)
+        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>> {i}:  Publishing message {base_message} for random {rand}")
+        mqtt_connection.publish_message(publish_topic, json.dumps(base_message))
+        time.sleep(10)
