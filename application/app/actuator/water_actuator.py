@@ -38,6 +38,10 @@ class WaterActuator:
 
         device = Device(mac=self.address)
         await device.connect()
+        if not device.is_connected():
+            logging.info(f"The device is not connected so skipping remainder of request to validate connection.")
+            return None
+
         await device.fetch_state()
         logging.info(f"Device = {device}")
 
@@ -101,6 +105,10 @@ class WaterActuator:
         logging.info(f"Connecting to device address {self.address} to water zone {zone}.")
         device = Device(mac=self.address)
         await device.connect()
+        if not device.is_connected():
+            logging.info(f"The device is not connected so skipping remainder of request to water.")
+            return None
+
         await device.fetch_state()
 
         device_zone = WaterActuator.zone_map(device, zone)  #aka valve
@@ -131,7 +139,12 @@ class WaterActuator:
 
         device = Device(mac=self.address)
 
+        battery = None
         await device.connect()
+        if not device.is_connected():
+            logging.info(f"The device is not connected so skipping remainder of request to check water.")
+            return battery
+        
         await device.fetch_state()
         logging.info(f"Device in battery check = {device}")
 
