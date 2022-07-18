@@ -93,6 +93,17 @@ def test_is_watering():
     assert WaterActuator.is_watering(valve)
 
 
+tests = [ 
+    ("'PP:PP:PP:PP:PP:PP'", False),
+    ("38:9F:DE:A8:80:36", True),
+    ("'38:9F:DE:A8:80:36'", False),
+ ]
+@pytest.mark.parametrize('sample, expected', tests)
+def test_is_valid_address(sample, expected):
+
+    assert WaterActuator.is_valid_address(sample) == expected
+
+
 def test_water_zone_protects_watering_active(monkeypatch):
     """There could be scenarios where an automated timer is already going, OR
     cases where the central command tells to re-water something that's already manually being watered.

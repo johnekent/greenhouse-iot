@@ -4,7 +4,7 @@ Simple wrapper around melnor_bluetooth for a subset of relevant functionality to
 """
 import asyncio
 import logging
-import time
+import re
 
 ## this is realated to the TODO in the ignore_sensor_modules.py testing script.  Please direct your attention elsewhere.
 try:
@@ -20,7 +20,15 @@ class WaterActuator:
     Also, since these commands will be infrequent and connections can fail between, it just makes sense.
     """
     def __init__(self, address, validate_connection=False):
-        self.address = address # this is the melnor greenhouse address as seen in the app but separated by colons -- e.g. '38:23:C8:A1:21:36'
+        """Construct and optionally validate
+
+        Args:
+            address (str): # this is the melnor greenhouse address as seen in the app but separated by colons -- e.g. 38:23:C8:A1:21:36
+            validate_connection (bool, optional): _description_. Defaults to False.
+        """
+        if not WaterActuator.is_valid_address(address):
+            raise ValueError(f"The address must be of valid mac address format (e.g. 38:23:C8:A1:21:36) without any preceding or training quotes or other characters.  However, it was --> {address} <--")
+        self.address = address
 
         if validate_connection:
             try:
@@ -48,6 +56,28 @@ class WaterActuator:
         await device.disconnect()
         logging.info(f"Device disconnected")
         ## let any exceptions float up
+
+    @staticmethod
+    def is_valid_address(address):
+        """check the address validity
+
+        Args:
+            address (_type_): _description_
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            boolean: True if valid
+        """
+
+        two_chars = '[0-9A-Fa-f]{2}'
+        valid_format = f'^({two_chars}[:]){{5}}({two_chars})$'
+        match_result = re.match(valid_format, address)
+
+        print (f"{valid_format} matches {address} with {match_result}")
+
+        return True if match_result else False
 
     @staticmethod
     def zone_map(device, zone: int):
@@ -114,6 +144,7 @@ class WaterActuator:
         device_zone = WaterActuator.zone_map(device, zone)  #aka valve
         logging.info(f"The device zone valve {device_zone} will be used for any watering requests.")
 
+        logging.info(f"The device status in native format is {device}")
         device_status = WaterActuator.get_device_status(device)
         logging.info(f"The device status in water request is {device_status}")
 

@@ -97,8 +97,8 @@ if __name__ == '__main__':
     mqtt_connection.subscribe_to_messages(subscribe_topic=control_topic, callback=actuator_processor.on_message_received)
     logging.info(f"Registered subscription to {control_topic} for callback {actuator_processor.on_message_received}")
 
-    """  don't exit -- don't use asyncio threading since it may be interfering with the watering asyncio threads
-
+    # don't exit 
+    # does using asyncio threading since it may be interfering with the watering asyncio threads
     try:
         loop = asyncio.get_event_loop()
         loop.run_forever()
@@ -107,7 +107,6 @@ if __name__ == '__main__':
     finally:
         logging.info(f"The control loop is now closing due to receiving {ki}")
         loop.close()
-    """
 
     """This doesn't work since running in nohup background
     stop_command = "STOP"
@@ -116,9 +115,12 @@ if __name__ == '__main__':
         if command == stop_command:
             break
     """
-
+    
+    """
+    # this is just too brute force
     try:
         while True:
             pass
     except KeyboardInterrupt:
         print("Finished")
+    """
