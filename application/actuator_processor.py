@@ -4,6 +4,7 @@ Handle receipt and processing of control messages on topics
 
 import json
 import logging
+import asyncio
 
 from app.actuator import WaterActuator
 
@@ -37,5 +38,5 @@ class ActuatorProcessor:
             duration = payload_json['duration']
 
             water_actuator = WaterActuator(address=self.water_actuator_address)
-            response = water_actuator.water_zone(zone=zone, minutes=duration)
+            response = asyncio.run(water_actuator.water_zone(zone=zone, minutes=duration))
             logging.info(f"Sent watering request to {water_actuator} and received response {response}")
