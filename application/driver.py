@@ -109,10 +109,16 @@ if __name__ == '__main__':
         loop.close()
     """
 
+    """This doesn't work since running in nohup background
     stop_command = "STOP"
     while True:
         command = input(f"Enter {stop_command} to stop:   ")
         if command == stop_command:
             break
+    """
 
-    print("Finished")
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print("Finished")
