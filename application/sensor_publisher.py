@@ -41,8 +41,8 @@ class SensorPublisher:
         Args:
             mqtt_connection (AWS mqtt_connection): a connected connection
             topic (str): publish messages to this MQTT topic
-            verbosity (_type_): _description_
             thing_name (str): name of the device
+            active_sensors (str): sensor definition configuration
             seconds_between (int, optional): Time between measurements.  Defaults to 10.
         """
         self.reading_timer = None
@@ -56,23 +56,22 @@ class SensorPublisher:
 
 
     @staticmethod
-    def load_sensors(sensors_csv: str):
-        """ Create list of instantiated sensor classes based on the comma separated string of sensors.
+    def load_sensors(sensor_configuration_string: str):
+        """ Create list of instantiated sensor classes based on the list of sensors.
 
         Args:
-            sensors_csv (str): comma-separated list of sensor class names.  e.g. "LightSensor,TempHumiditySensor"
+            sensor_configuration_string (str): see the definition of sensor_definition_list_from_config_string()
 
         Returns:
-            sensor_class_list (list): list of sensors
+            sensor_class_list (list): list of instantiated sensors
         """
-        sensor_list = sensors_csv.split(",")
-        # remove any stray spaces
-        sensor_list = [ sensor.strip() for sensor in sensor_list ]
-        # remove any empty items - handles both stray commas and overall empty string
-        sensor_list = [ sensor for sensor in sensor_list if len(sensor) > 0 ] 
-        logging.info(f"The cleaned set of sensors is {sensor_list}")
-        sensor_class_list = [ su.instance_from_string(sensor) for sensor in sensor_list ]
+
+        sensor_definition_list = su.sensor_definition_list_from_config_string(sensor_configuration_string)
+        logging.info(f"The cleaned set of sensors is {sensor_definition_list}")
+
+        sensor_class_list = [ su.instance_from_definition(sensor_definition) for sensor_definition in sensor_definition_list ]
         logging.info(f"Using a total of {len(sensor_class_list)} sensors = {sensor_class_list}")
+
         return sensor_class_list
 
     def measure_environment(self):

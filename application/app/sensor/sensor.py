@@ -14,6 +14,10 @@ class Sensor(ABC):
     """
 
     def __init__(self, *args, **kwargs):
+        """ If a subclass overrides the constructor, it must make sure to invoke
+        the base class constructor (super().__init__()) before doing anything
+        else to the thread.
+        """
         self.connection = None
 
         try:

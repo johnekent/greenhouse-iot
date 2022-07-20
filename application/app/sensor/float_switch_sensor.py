@@ -16,6 +16,11 @@ class FloatSwitchSensor(Sensor):
     Initially hardcoded to use GPIO 27 (Physical 13).
     """
 
+    def __init__(self, name="float_switch"):
+        print(f"in the init of FloatSwitchSensor")
+        self.name = name
+        super().__init__()
+
     def _connect(self):
 
         connection = None
@@ -60,7 +65,7 @@ class FloatSwitchSensor(Sensor):
 
 
     def _name(self):
-        return "float_switch"
+        return self.name
 
 if __name__ == "__main__":
     
