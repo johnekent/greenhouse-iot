@@ -17,7 +17,6 @@ class FloatSwitchSensor(Sensor):
     """
 
     def __init__(self, name="float_switch"):
-        print(f"in the init of FloatSwitchSensor")
         self.name = name
         super().__init__()
 

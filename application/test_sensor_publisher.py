@@ -4,7 +4,7 @@ from tests import ignore_sensor_modules
 
 from sensor_publisher import SensorPublisher
 
-all_known_sensors = "TempHumiditySensor, TempHumiditySensorI2C, LightSensor, LightSensorUV, WaterProbe, FloatSwitchSensor"
+all_known_sensors = "TempHumiditySensor; TempHumiditySensorI2C; LightSensor; LightSensorUV; WaterProbe; FloatSwitchSensor"
 
 def test_load_empty_sensors_list():
 
@@ -17,7 +17,21 @@ def test_load_sensors_list_spaces_ok():
     #test with a space between
     sensors = SensorPublisher.load_sensors(all_known_sensors)
 
+    assert len(sensors) == len(all_known_sensors.split(";"))
+
+### This is a broad test of functionality
+def test_load_sensors_list_sensor_names():
+    
+    test_name = "9kkjlahsgl2146246"
+    named_sensors = f"TempHumiditySensor(name={test_name}); TempHumiditySensorI2C(name={test_name}); LightSensor(name={test_name}); LightSensorUV(name={test_name}); WaterProbe(name={test_name}); FloatSwitchSensor(name={test_name})"
+
+    sensors = SensorPublisher.load_sensors(named_sensors)
+
+    for sensor in sensors:
+        assert test_name == sensor._name(), f"Expected to see test name of {test_name} but instead it was {sensor._name()}"
+
     assert len(sensors) == len(all_known_sensors.split())
+
 
 def test_load_sensors_mix_of_bad_and_good_throws_exception():
 

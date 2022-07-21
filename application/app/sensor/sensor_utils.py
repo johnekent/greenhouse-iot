@@ -1,7 +1,9 @@
 """ Generally static utility methods
 """
+from email.headerregistry import ParameterizedMIMEHeader
 import importlib
 import logging
+import re
 
 from . sensor import Sensor
 
@@ -50,6 +52,8 @@ class SensorUtils:
             a cleaned list
         """
 
+        assert isinstance(config_string, str), f"The parameter {config_string} must be a string"
+
         config_list = config_string.split(delim)
         
         # remove any stray spaces
@@ -64,12 +68,13 @@ class SensorUtils:
         """Process a configuration string and return a sensor definition list.
 
         The sensor string should be of format:
-        ClassName(param1=value1,param2=value2);ClassName2(param1=value1)
+        ClassName(param1=value1,param2=value2);ClassName2(param1=value1);ClassName3
         and should return a list of format, with
         the value of params passable as **kwargs for sensor constructor (as in __init__(**kwargs) ) 
         [
-            {'class': 'ClassName', 'params': {'param1': value1, 'param2': value2}},
-            {'class': 'ClassName2', 'params': {'param1': value1}
+            {'class': 'ClassName', 'params': {'param1': value1, 'param2': value2} },
+            {'class': 'ClassName2', 'params': {'param1': value1} },
+            {'class': 'ClassName3' }
         ]
 
         Args:
@@ -83,9 +88,36 @@ class SensorUtils:
         sensor_config_lines = SensorUtils._split_and_clean(sensor_config_string, ';')
         logging.debug(f"List of individual sensor config lines is {sensor_config_lines}")
 
+        sensor_definition_list = []
 
+        ## e.g. ClassName(stuffstuffstuff)
+        class_with_params_pattern = r"(.+)\((.+)\)$"  # The r handles the escape \( without warning
 
+        for sensor_config in sensor_config_lines:
+            class_name = None
+            params = None
+            if re.match(class_with_params_pattern, sensor_config):
+                ## slice it out
+                params_string = sensor_config[sensor_config.find('(')+1:sensor_config.find(')')]
+                params_list = SensorUtils._split_and_clean(params_string, ",")
+                # style note:  list and dict comprehension here with the function calls would be hard to read and harder to debug
+                # ... hence the for loops
+                params = {}
+                class_name = sensor_config.split("(")[0]
+                for param in params_list:
+                    kvp_list = SensorUtils._split_and_clean(param, "=")
+                    if len(kvp_list) == 2:
+                        params[kvp_list[0]] = kvp_list[1]
+                    else:
+                        logging.warning(f"The parameter configuration of {param} for class {class_name} did not match expected pattern of key=value.")
 
-        sensor_configs = None
+            else:
+                class_name = sensor_config
 
-        return sensor_configs
+            sensor_definition = {}
+            sensor_definition['class']=class_name
+            if params:
+                sensor_definition['params']= params
+            sensor_definition_list.append(sensor_definition)
+
+        return sensor_definition_list

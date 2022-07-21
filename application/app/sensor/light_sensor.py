@@ -9,6 +9,10 @@ from . sensor import Sensor
 class LightSensor(Sensor):
     """ LightSensor class
     """
+    def __init__(self, name="light_sensor"):
+        self.name = name
+        super().__init__()
+
     def _connect(self):
         """Implement the connection method
 
@@ -52,7 +56,7 @@ class LightSensor(Sensor):
         return metrics
     
     def _name(self):
-        return "light_sensor"
+        return self.name
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')

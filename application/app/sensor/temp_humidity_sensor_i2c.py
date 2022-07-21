@@ -12,6 +12,11 @@ class TempHumiditySensorI2C(Sensor):
     """ TempHumiditySensorI2C class.
     """
 
+    def __init__(self, name="temp_humidity_sensor_i2c"):
+        self.name = name
+        super().__init__()
+
+
     def _connect(self):
 
         connection = None
@@ -51,7 +56,7 @@ class TempHumiditySensorI2C(Sensor):
         return metrics
 
     def _name(self):
-        return "temp_humidity_sensor_i2c"
+        return self.name
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')

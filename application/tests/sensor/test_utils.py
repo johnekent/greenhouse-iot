@@ -45,7 +45,7 @@ def test_sensor_definition_list_from_config_string(sensor_list_string, expected_
 ## rather than doing a bunch of confusing zips and lists, just to some targeted tests
 def test_sensor_definition_list_from_config_string_has_no_params():
 
-    sensor_list = su.sensor_definition_list_from_config_string("LightSensor(name=lighty_boy);")
+    sensor_list = su.sensor_definition_list_from_config_string("LightSensor")
     assert 'params' not in sensor_list[0]
 
 def test_sensor_definition_list_from_config_string_has_dict_entries():
@@ -63,12 +63,32 @@ def test_sensor_definition_list_from_config_string_has_matching_params():
     k2 = "9271616"
     v2 = "78699716"
 
-    config_string = f"{class_name}({k1}={v1},{k2}={v2}"
+    config_string = f"{class_name}({k1}={v1},{k2}={v2})"
     sensor_list = su.sensor_definition_list_from_config_string(config_string)
 
     sensor_config = sensor_list[0]
 
-    #assert sensor_list['class'] == class_name
+    assert sensor_config['class'] == class_name
+
+    assert 'params' in sensor_config, f"Expected 'params' in {sensor_config}"
+    assert k1 in sensor_config['params'], f"Expected {k1} in {sensor_config['params']}"
+
+    assert sensor_config['params'][k1] == v1
+    assert sensor_config['params'][k2] == v2
+
+def test_sensor_definition_list_from_config_string_ok_with_no_params():
+    class2 = "masdgasd"
+    config_string = f"class(k1=v1);{class2}"
+
+    sensor_list = su.sensor_definition_list_from_config_string(config_string)
+
+    found = False
+
+    for sensor in sensor_list:
+        if sensor['class'] == class2:
+            found = True
+
+    assert found
 
 
 def test_split_and_clean():

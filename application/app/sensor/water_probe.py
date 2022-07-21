@@ -13,6 +13,9 @@ class WaterProbe(Sensor):
     """Class to represent a DS18b20 one wire probe for reading.
     Works well when connected to GPIO4 input.
     """
+    def __init__(self, name="water_probe"):
+        self.name = name
+        super().__init__()
 
     def _connect(self):
 
@@ -85,7 +88,7 @@ class WaterProbe(Sensor):
         return metrics
 
     def _name(self):
-        return "water_probe"
+        return self.name
 
 if __name__ == "__main__":
 
