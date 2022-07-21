@@ -13,17 +13,26 @@ from . sensor import Sensor
 
 class FloatSwitchSensor(Sensor):
     """ Class for reading the state of the float switch.
-    Initially hardcoded to use GPIO 27 (Physical 13).
     """
 
-    def __init__(self, name="float_switch"):
+    def __init__(self, name="float_switch", switch_pin=27):
+        """Constructor
+
+        Args:
+            name (str, optional): The name to use for any references or output from this sensor. Defaults to "float_switch".
+            switch_pin (int|str, optional): "GPIO #" - e.g. physical 13 = GPIO 27 (GPIO.BCM). Defaults to 27.
+        """
         self.name = name
+        if(isinstance(switch_pin, str)):
+            switch_pin = int(switch_pin)
+        
+        self.switch_pin = switch_pin
+                        
         super().__init__()
 
     def _connect(self):
 
         connection = None
-        self.switch_pin = 27
         
         try:
             GPIO.setwarnings(False)

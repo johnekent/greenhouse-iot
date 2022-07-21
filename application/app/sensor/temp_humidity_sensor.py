@@ -12,6 +12,11 @@ class TempHumiditySensor(Sensor):
     """
 
     def __init__(self, name="temp_humidity_sensor"):
+        """Constructor
+
+        Args:
+            name (str, optional): Any name you like; suggest uniqueness across sensor set you use, but up to you. Defaults to "temp_humidity_sensor".
+        """
         self.name = name
         super().__init__()
 
