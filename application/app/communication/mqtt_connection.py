@@ -7,6 +7,8 @@ import sys
 from awscrt import io, mqtt
 from awsiot import mqtt_connection_builder
 
+
+
 class MQTTConnection:
     """Class MQTTConnection.  Contains the connection and lifecycle of MQTT connection for topic send and receive.
     """
@@ -31,6 +33,10 @@ class MQTTConnection:
         self.client_id = client_id
 
         self.mqtt_connection = None
+
+        ## share the same connection across users
+        ## putting this init also prevents synchronization issues across users
+        self.mqtt_connection = self.create_connection()
 
         io.init_logging(getattr(io.LogLevel, verbosity), 'stderr')
     
@@ -96,6 +102,10 @@ class MQTTConnection:
             key (_type_): _description_
             root_ca (_type_): _description_
             client_id (_type_): _description_
+
+        Returns:
+            mqtt_connection:  connection to the actual MQTT service
+
         """
 
         if self.mqtt_connection:
@@ -128,7 +138,7 @@ class MQTTConnection:
         result = connect_future.result()
         logging.info(f"Connected with result {result}!")
 
-        self.mqtt_connection = mqtt_connection        
+        return mqtt_connection        
 
     def publish_message(self, topic, message):
         """Write message to topic using connection

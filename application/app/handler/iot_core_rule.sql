@@ -1,0 +1,1 @@
+select * from 'greenhouse/metrics' where (sensor_metrics.float_switch_left.float_switch_state = "LOW" OR sensor_metrics.float_switch_right.float_switch_state = "LOW")
