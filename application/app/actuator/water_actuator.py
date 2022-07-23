@@ -137,7 +137,7 @@ class WaterActuator:
         await device.connect()
         if not device.is_connected:
             logging.info(f"The device is not connected so skipping remainder of request to water.")
-            return None
+            return { 'status': 'disconnected' }
 
         await device.fetch_state()
 

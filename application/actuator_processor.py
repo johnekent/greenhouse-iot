@@ -18,7 +18,7 @@ class ActuatorProcessor:
 
     def on_message_received(self, topic, payload):
         """ Callback when the subscribed topic receives a message from the control topic
-        Handles the control topic message (such as stop_sensor or start_sensor)
+        Handles the control topic message (such as water a zone)
 
         Args:
             topic (_type_): _description_

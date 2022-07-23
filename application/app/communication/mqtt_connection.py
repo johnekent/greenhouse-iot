@@ -173,7 +173,7 @@ class MQTTConnection:
         logging.info(f"Subscribing to topic {subscribe_topic}")
         subscribe_future, packet_id = self.mqtt_connection.subscribe(
             topic=subscribe_topic,
-            qos=mqtt.QoS.AT_LEAST_ONCE,
+            qos=mqtt.QoS.AT_MOST_ONCE,  # do not let a message go more than one time in our context
             callback=callback)
 
         subscribe_result = subscribe_future.result()
