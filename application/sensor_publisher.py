@@ -8,6 +8,7 @@ from datetime import datetime
 import json
 import logging
 import random
+import uuid
 from threading import Timer
 
 #TODO:  move this dependency into the MQTT class and refactor
@@ -90,7 +91,8 @@ class SensorPublisher:
         day_and_time = now.strftime("%c")
         day_of_year = now.strftime("%j")
         time_of_day = now.strftime("%H:%M:%S.%f")
-        message = {"location": self.thing_name, "datetime": day_and_time, "day_of_year": day_of_year, "time_of_day": time_of_day, "volume_gallons": volume_reading, "sensor_metrics": sensor_metrics}
+        msg_id = str(uuid.uuid4())
+        message = {"location": self.thing_name, "datetime": day_and_time, "day_of_year": day_of_year, "time_of_day": time_of_day, "msg_id": msg_id,"volume_gallons": volume_reading, "sensor_metrics": sensor_metrics}
         return message
 
     def send_measurement(self):

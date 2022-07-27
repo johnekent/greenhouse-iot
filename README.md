@@ -18,3 +18,5 @@ pi@raspberrypi:/iot<br>
 
 And successfully ran the ./start.sh to validate communication.<br>
 
+## check the wireless strength and options using command:
+iwlist wlan0 scan | egrep "Cell|ESSID|Signal|Rates|Frequency"
