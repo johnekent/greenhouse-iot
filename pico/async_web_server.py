@@ -7,9 +7,11 @@ from machine import Pin
 
 import uasyncio as asyncio
 
+from status_display import StatusDisplay
+
 class AsyncWebServer:
     
-    def __init__(self, temp_sensor, light_sensor, wlan, background_task, background_interval_sec, port=80):
+    def __init__(self, temp_sensor, light_sensor, wlan, background_task, background_interval_sec, status_display, port=80):
         """
         wlan isn't used directly but can be queried for status on failure
         """
@@ -23,6 +25,8 @@ class AsyncWebServer:
         
         self.background_task = background_task
         self.background_interval_sec = background_interval_sec
+        
+        self.status_display = status_display
         
         self.port = port
         
@@ -90,15 +94,15 @@ class AsyncWebServer:
             print("Webserver executing background task")
             await self.background_task()
             print("Background task completed")
+            self.status_display.flash_all(0.25)
             await asyncio.sleep(self.background_interval_sec)
-            
             
 if __name__ == "__main__":
     # local test
 
     import main
-    import si7021  #for the conversion function
     wlan = main.connect_wifi()
+    status_display = StatusDisplay(main.led_config)
     
     class MockSensor:
         def take_measurement(self):
@@ -110,7 +114,7 @@ if __name__ == "__main__":
     async def say_hello():
         print("Hello from the background")
     
-    ws = AsyncWebServer(temp_sensor=temp_sensor, light_sensor=light_sensor, wlan=wlan, background_task=say_hello, background_interval_sec=10)
+    ws = AsyncWebServer(temp_sensor=temp_sensor, light_sensor=light_sensor, wlan=wlan, background_task=say_hello, status_display=status_display, background_interval_sec=10)
         
     try:
         asyncio.run(ws.run_server())	

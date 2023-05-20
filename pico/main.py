@@ -113,6 +113,7 @@ def create_sensors():
     # Create I2C object
     i2c = machine.I2C(0, scl=machine.Pin(SCL_PIN), sda=machine.Pin(SDA_PIN))
 
+    print("Got i2c... creating light sensor")
     light_sensor = LIGHT_SENSOR_CLASS(i2c=i2c)
     print("...Light sensor created")
     
@@ -239,8 +240,10 @@ if __name__ == "__main__":
         print("Created sensors")
         status.set_on(['pink'])
         
+        ### The status LEDs have helped with startup.  now give them a rest to save lifespan.
+        
         print("Starting status server")
-        ws = AsyncWebServer(temp_sensor=temp_sensor, light_sensor=light_sensor, wlan=wlan, background_task=take_measurement, background_interval_sec=measure_interval)
+        ws = AsyncWebServer(temp_sensor=temp_sensor, light_sensor=light_sensor, wlan=wlan, background_task=take_measurement, background_interval_sec=measure_interval, status_display=status)
         
         try:
             print("Starting status server")
@@ -250,8 +253,6 @@ if __name__ == "__main__":
             status.set_off(['green'])
             print("The server event loop is finishing")
             asyncio.new_event_loop()
-        
-        
         
     except Exception as e:
         msg = f"Received exception during setup of infrastructure {e}"

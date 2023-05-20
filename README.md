@@ -1,4 +1,8 @@
 # greenhouse-iot
+# Details for pico w
+Please see only the pico folder
+
+# Details below are for Pi zero, etc.
 ## General Pi Setup
 Enable I2C - go through the Preferences - Interfaces UI<br>
 Enable SSH - go through the Preferences - Interfaces UI<br>

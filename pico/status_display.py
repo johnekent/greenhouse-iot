@@ -45,6 +45,13 @@ class StatusDisplay:
     def set_off(self, names):
         for name in names:
             self.leds[name].off()
+            
+    def flash_all(self, sleep_for=1):
+        for name in self.leds.keys():
+            self.leds[name].on()
+            sleep(sleep_for)
+            
+        self.all_off()
 
 if __name__ == "__main__":
     print("in main")
@@ -71,9 +78,7 @@ if __name__ == "__main__":
     sleep(2)
     sd.set_off(['blue','purple','green', 'main'])
     
-    for item in led_config:
-        sd.set_on([item['name']])
-        sleep(1)
+    sd.flash_all(0.5)
         
     sd.all_off()
 
