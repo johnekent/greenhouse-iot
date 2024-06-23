@@ -5,6 +5,7 @@ Handle receipt and processing of control messages on topics
 import json
 import logging
 import asyncio
+import boto3
 
 from app.actuator import WaterActuator
 
@@ -40,3 +41,15 @@ class ActuatorProcessor:
             water_actuator = WaterActuator(address=self.water_actuator_address)
             response = asyncio.run(water_actuator.water_zone(zone=zone, minutes=duration))
             logging.info(f"Sent watering request to {water_actuator} and received response {response}")
+
+            ## TODO assess hackiness of this convenient logging
+            try:
+                client = boto3.client('iot-data')
+                payload = {"command": command, "zone": zone, "duration": duration, "response": response}
+                response = client.publish(
+                    topic='greenhouse/actions',
+                    qos=1,
+                    payload=payload
+                )
+            except Exception as e:
+                logging.error(f"Attempted to log the action but got error: {e}.  Oh well.")
