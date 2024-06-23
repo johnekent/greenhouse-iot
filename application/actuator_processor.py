@@ -47,7 +47,7 @@ class ActuatorProcessor:
                 payload = {"command": command, "zone": zone, "duration": duration, "response": response}
                 response = self.mqtt_connection.publish_message(
                     topic='greenhouse/actions',
-                    message=payload
+                    message=json.dumps(payload)
                 )
                 logging.info(f"Published message to actions topic with response {response}")
             except Exception as e:
