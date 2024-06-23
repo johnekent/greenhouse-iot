@@ -5,7 +5,6 @@ Handle receipt and processing of control messages on topics
 import json
 import logging
 import asyncio
-import boto3
 
 from app.actuator import WaterActuator
 
@@ -13,8 +12,9 @@ class ActuatorProcessor:
     """ Receive messages and issue commands.
     """
 
-    def __init__(self, water_actuator_address: str):
+    def __init__(self, water_actuator_address: str, mqtt_connection):
         self.water_actuator_address = water_actuator_address
+        self.mqtt_connection = mqtt_connection
         logging.info(f"Initiatlized {self} with water_actuator_address {water_actuator_address}")
 
     def on_message_received(self, topic, payload):
@@ -44,12 +44,11 @@ class ActuatorProcessor:
 
             ## TODO assess hackiness of this convenient logging
             try:
-                client = boto3.client('iot-data')
                 payload = {"command": command, "zone": zone, "duration": duration, "response": response}
-                response = client.publish(
+                response = self.mqtt_connection.publish_message(
                     topic='greenhouse/actions',
-                    qos=1,
-                    payload=payload
+                    message=payload
                 )
+                logging.info(f"Published message to actions topic with response {response}")
             except Exception as e:
                 logging.error(f"Attempted to log the action but got error: {e}.  Oh well.")

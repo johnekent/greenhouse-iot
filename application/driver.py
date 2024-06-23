@@ -87,7 +87,7 @@ if __name__ == '__main__':
     ## Note:  This is currently setup to run on the same device (sensor and actuator).
     # However, it could be split out to separate devices which would require a change to driver.
 
-    actuator_processor = ActuatorProcessor(water_actuator_address=melnor_mac)
+    actuator_processor = ActuatorProcessor(water_actuator_address=melnor_mac, mqtt_connection=mqtt_connection)
     control_topic=args.control_topic
 
     #control_thread = threading.Thread(target=mqtt_connection.subscribe_to_messages, args=[], kwargs={'subscribe_topic': control_topic, 'callback': actuator_processor.on_message_received}, daemon=True)
